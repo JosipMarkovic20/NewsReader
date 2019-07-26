@@ -16,6 +16,8 @@ import RxCocoa
 class NewsTableViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     //MARK: Properties
+    let bbcNewsUrl: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=aeeabfe03a71457ebf1167aa96751e37"
+    let ignNewsUrl: String = "https://newsapi.org/v1/articles?source=ign&sortBy=top&apiKey=aeeabfe03a71457ebf1167aa96751e37"
     var news = [News]()
     let cellIdentifier = "NewsTableViewCell"
     let alamofire = AlamofireManager()
@@ -38,6 +40,24 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         return tableView
     }()
     
+    var ignButton: UIButton = {
+        let ignButton = UIButton()
+        ignButton.translatesAutoresizingMaskIntoConstraints = false
+        ignButton.setTitle("IGN News", for: .normal)
+        ignButton.setTitleColor(UIColor(red: 0.054, green: 0.25, blue: 1, alpha: 1.0), for: .normal)
+        ignButton.setTitleColor(.gray, for: .highlighted)
+        return ignButton
+    }()
+    
+    var bbcButton: UIButton = {
+        let bbcButton = UIButton()
+        bbcButton.translatesAutoresizingMaskIntoConstraints = false
+        bbcButton.setTitle("BBC News", for: .normal)
+        bbcButton.setTitleColor(UIColor(red: 0.054, green: 0.25, blue: 1, alpha: 1.0), for: .normal)
+        bbcButton.setTitleColor(.gray, for: .highlighted)
+        return bbcButton
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupSubscriptions()
@@ -50,9 +70,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func setupUI(){
+        view.backgroundColor = .white
         navigationItem.title = "Factory"
         self.navigationController?.navigationBar.barStyle = .black
         self.view.addSubview(tableView)
+        self.view.addSubview(ignButton)
+        self.view.addSubview(bbcButton)
         setupTableView()
         setupRefreshControl()
         setupConstraints()
@@ -66,7 +89,15 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func setupConstraints(){
-        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        bbcButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+        bbcButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20).isActive = true
+        bbcButton.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        
+        ignButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+        ignButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20).isActive = true
+        ignButton.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        
+        tableView.topAnchor.constraint(equalTo: bbcButton.bottomAnchor, constant: 20).isActive = true
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
@@ -157,8 +188,8 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
-        return subject.flatMap({ (bool) -> Observable<([News], [RealmNews])> in
-            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(), self.database.getObjects()) { (articles, favNews) in
+        return subject.flatMap({[unowned self] (bool) -> Observable<([News], [RealmNews])> in
+            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.database.getObjects()) { (articles, favNews) in
                 return(articles, favNews)
             }
             return observable

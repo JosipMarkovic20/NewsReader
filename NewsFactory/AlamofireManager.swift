@@ -12,12 +12,12 @@ import RxCocoa
 
 class AlamofireManager {
     
-    let jsonUrlString: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=aeeabfe03a71457ebf1167aa96751e37"
     
-    func getNewsAlamofireWay() -> Observable<[News]>{
+    
+    func getNewsAlamofireWay(jsonUrlString: String) -> Observable<[News]>{
         
-        return Observable.create{[unowned self] observer in
-            Alamofire.request(self.jsonUrlString)
+        return Observable.create{observer in
+            Alamofire.request(jsonUrlString)
                 .validate()
                 .responseJSON { response in
                     do {
@@ -31,7 +31,7 @@ class AlamofireManager {
                     }
             }
             return Disposables.create{
-                Alamofire.request(self.jsonUrlString).cancel()
+                Alamofire.request(jsonUrlString).cancel()
             }
         }
     }

@@ -24,7 +24,7 @@ class News: Codable{
     let title: String
     let description: String
     let urlToImage: String
-    let author: String
+    let author: String?
     let url: String
     let publishedAt: String?
     var isFavorite: Bool = false

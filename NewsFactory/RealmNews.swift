@@ -25,7 +25,7 @@ class RealmNews: Object{
         realmNews.realmTitle = news.title
         realmNews.realmDescription = news.description
         realmNews.realmUrlToImage = news.urlToImage
-        realmNews.realmAuthor = news.author
+        realmNews.realmAuthor = news.author ?? ""
         realmNews.realmUrl = news.url
         realmNews.realmPublishedAt = news.publishedAt ?? ""
         return realmNews
