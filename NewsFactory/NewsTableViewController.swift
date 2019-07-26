@@ -233,7 +233,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
-        return subject.flatMap({[unowned self] (bool) -> Observable<([News],[News], [RealmNews])> in
+        return subject.flatMap({[unowned self] (bool) -> Observable<([News], [News], [RealmNews])> in
             let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.alamofire.getNewsAlamofireWay(jsonUrlString: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
                 return(bbcNews, ignNews, favNews)
             }
@@ -244,6 +244,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
             .map({[unowned self] (bbcNews, ignNews, realmNews) -> ([News],[News]) in
                 let bbcNewsFeedArray = self.createScreenData(news: bbcNews, realmNews: realmNews)
                 let ignNewsFeedArray = self.createScreenData(news: ignNews, realmNews: realmNews)
+                
                 return (bbcNewsFeedArray, ignNewsFeedArray)
             }).subscribe(onNext: { [unowned self] (bbcNewsFeed, ignNewsFeed) in
                 self.bbcNews = bbcNewsFeed
@@ -276,6 +277,14 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         self.present(alert, animated: true)
     }
     
+    func showRealmAlert(){
+        let alert = UIAlertController(title: "Error", message: "Something went wrong.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) in
+            alert.dismiss(animated: true, completion: nil)
+        }))
+        self.present(alert, animated: true)
+    }
+    
     func showLoader() -> UIAlertController{
         let alert = UIAlertController(title: nil, message: "Please wait...", preferredStyle: .alert)
         let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
@@ -296,7 +305,11 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 .observeOn(MainScheduler.instance)
                 .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
                 .subscribe(onNext: { (string) in
+                    self.showToast(controller: self, message: "Favorite added.", seconds: 1)
                     print(string)
+                }, onError: {[unowned self](error) in
+                    print(error)
+                    self.showRealmAlert()
                 }).disposed(by: disposeBag)
             self.tableView.reloadRows(at: [indexPath], with: .automatic)
         }
@@ -307,8 +320,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
             self.database.saveObject(news: news)
                 .observeOn(MainScheduler.instance)
                 .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-                .subscribe(onNext: { (string) in
+                .subscribe(onNext: {[unowned self] (string) in
+                    self.showToast(controller: self, message: "Favorite added.", seconds: 1)
                     print(string)
+                },onError: {[unowned self](error) in
+                    print(error)
+                    self.showRealmAlert()
                 }).disposed(by: disposeBag)
             self.tableView.reloadRows(at: [indexPath], with: .automatic)
         }
@@ -329,9 +346,26 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         self.database.deleteObject(news: news)
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: { (string) in
+            .subscribe(onNext: {[unowned self] (string) in
+                self.showToast(controller: self, message: "Favorite removed.", seconds: 1)
                 print(string)
+            },onError: {[unowned self](error) in
+                print(error)
+                self.showRealmAlert()
             }).disposed(by: disposeBag)
+    }
+    
+    func showToast(controller: UIViewController, message: String, seconds: Double){
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        
+        alert.view.backgroundColor = .black
+        alert.view.alpha = 0.5
+        alert.view.layer.cornerRadius = 15
+        
+        controller.present(alert, animated: true)
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + seconds) {
+            alert.dismiss(animated: true)
+        }
     }
     
 }
