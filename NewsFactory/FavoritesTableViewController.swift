@@ -117,6 +117,21 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
         }
         return favoriteNewsResult
     }
+    
+    func addFavorites(news: News){
+        self.news.append(news)
+        guard let indexOfNews = self.news.firstIndex(where: {$0.title==news.title}) else {return}
+        let newIndexPath: IndexPath = IndexPath(row: indexOfNews, section: 0)
+        self.tableView.insertRows(at: [newIndexPath], with: .automatic)
+    }
+    
+    func removeFavorites(news: News){
+        guard let indexOfFavorite = self.news.firstIndex(where: {$0.title==news.title}) else {return}
+        self.news.remove(at: indexOfFavorite)
+        let newIndexPath: IndexPath = IndexPath(row: indexOfFavorite, section: 0)
+        self.tableView.deleteRows(at: [newIndexPath], with: .automatic)
+    }
+    
 }
 
 

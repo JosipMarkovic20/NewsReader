@@ -42,6 +42,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         super.viewDidLoad()
         setupSubscriptions()
         setupUI()
+        collectAndPrepareData(for: getNewsSubject).disposed(by: disposeBag)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -55,7 +56,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         setupTableView()
         setupRefreshControl()
         setupConstraints()
-        refreshAndLoaderSubject.onNext(true)
+        
     }
     
     func setupTableView(){
@@ -83,6 +84,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     func getDataToShow(){
         let lastKnownTime = standardUserDefaults.integer(forKey: "Current time")
         if Int(Date().timeIntervalSince1970)-lastKnownTime>300 || news.isEmpty{
+            refreshAndLoaderSubject.onNext(true)
             getNewsSubjectFunction()
         }
     }
@@ -154,11 +156,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         getNewsSubject.onNext(true)
     }
     
-    func combineObservables(for subject: PublishSubject<Bool>) -> Disposable{
-        return subject.flatMap({ (<#Bool#>) -> ObservableConvertibleType in
-            Observable.zip(alamofire.getNewsAlamofireWay(), database.getObjects()) { (articles, favNews) in
+    func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
+        return subject.flatMap({ (bool) -> Observable<([News], [RealmNews])> in
+            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(), self.database.getObjects()) { (articles, favNews) in
                 return(articles, favNews)
             }
+            return observable
         })
         .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
@@ -173,7 +176,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
             }, onError: { [unowned self] error in
                 self.alertSubject.onNext(true)
                 self.refreshAndLoaderSubject.onNext(false)
-            }).disposed(by: disposeBag)
+            })
     }
     
     func createScreenData(news: [News], realmNews: [RealmNews]) -> [News]{
@@ -201,6 +204,35 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         present(alert, animated: false, completion: nil)
         return alert
     }
+    
+    func removeFavorites(news: News){
+        if let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) {
+            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
+            self.news[indexOfMainNews].isFavorite = false
+            self.tableView.reloadRows(at: [indexPath], with: .automatic)
+        }
+        self.database.deleteObject(news: news)
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribe(onNext: { (string) in
+                print(string)
+            }).disposed(by: disposeBag)
+    }
+    
+    func addFavorites(news: News){
+        guard let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) else {return}
+        let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
+        self.news[indexOfMainNews].isFavorite = true
+        news.isFavorite = true
+        self.database.saveObject(news: news)
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribe(onNext: { (string) in
+                print(string)
+            }).disposed(by: disposeBag)
+        self.tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
+    
 }
 
 extension NewsTableViewController: FavoriteClickDelegate{
