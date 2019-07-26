@@ -17,9 +17,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     //MARK: Properties
     let bbcNewsUrl: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=aeeabfe03a71457ebf1167aa96751e37"
-    let ignNewsUrl: String = "https://newsapi.org/v1/articles?source=ign&sortBy=top&apiKey=aeeabfe03a71457ebf1167aa96751e37"
-    var bbcNews = [News]()
-    var ignNews = [News]()
+    var news = [News]()
     let cellIdentifier = "NewsTableViewCell"
     let alamofire = AlamofireManager()
     var loader: UIAlertController?
@@ -33,32 +31,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     let getNewsSubject = PublishSubject<Bool>()
     let refreshAndLoaderSubject = PublishSubject<Bool>()
     let alertSubject = PublishSubject<Bool>()
-    let ignNewsSelectSubject = PublishSubject<Bool>()
-    let bbcNewsSelectSubject = PublishSubject<Bool>()
-    var bbcSelected: Bool = true
+    
     
     var tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
-    }()
-    
-    var ignButton: UIButton = {
-        let ignButton = UIButton()
-        ignButton.translatesAutoresizingMaskIntoConstraints = false
-        ignButton.setTitle("IGN News", for: .normal)
-        ignButton.setTitleColor(UIColor(red: 0.054, green: 0.25, blue: 1, alpha: 1.0), for: .normal)
-        ignButton.setTitleColor(.gray, for: .highlighted)
-        return ignButton
-    }()
-    
-    var bbcButton: UIButton = {
-        let bbcButton = UIButton()
-        bbcButton.translatesAutoresizingMaskIntoConstraints = false
-        bbcButton.setTitle("BBC News", for: .normal)
-        bbcButton.setTitleColor(UIColor(red: 0.054, green: 0.25, blue: 1, alpha: 1.0), for: .normal)
-        bbcButton.setTitleColor(.gray, for: .highlighted)
-        return bbcButton
     }()
     
     override func viewDidLoad() {
@@ -73,17 +51,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func setupUI(){
-        view.backgroundColor = .white
         navigationItem.title = "Factory"
         self.navigationController?.navigationBar.barStyle = .black
         self.view.addSubview(tableView)
-        self.view.addSubview(ignButton)
-        self.view.addSubview(bbcButton)
         setupTableView()
         setupRefreshControl()
         setupConstraints()
-        bbcButton.addTarget(self, action: #selector(selectBbcNews), for: .touchUpInside)
-        ignButton.addTarget(self, action: #selector(selectIgnNews), for: .touchUpInside)
         
     }
     
@@ -94,15 +67,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func setupConstraints(){
-        bbcButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 15).isActive = true
-        bbcButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 15).isActive = true
-        bbcButton.heightAnchor.constraint(equalToConstant: 15).isActive = true
-        
-        ignButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 15).isActive = true
-        ignButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -15).isActive = true
-        ignButton.heightAnchor.constraint(equalToConstant: 15).isActive = true
-        
-        tableView.topAnchor.constraint(equalTo: bbcButton.bottomAnchor, constant: 15).isActive = true
+        tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
@@ -119,7 +84,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func getDataToShow(){
         let lastKnownTime = standardUserDefaults.integer(forKey: "Current time")
-        if Int(Date().timeIntervalSince1970)-lastKnownTime>300 || bbcNews.isEmpty{
+        if Int(Date().timeIntervalSince1970)-lastKnownTime>300 || news.isEmpty{
             refreshAndLoaderSubject.onNext(true)
             getNewsSubjectFunction()
         }
@@ -138,12 +103,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        if bbcSelected {
-            return bbcNews.count
-        }else{
-            return ignNews.count
-        }
-        
+        return news.count
     }
     
     
@@ -151,24 +111,14 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
-        let singleNews: News
-        if bbcSelected{
-            singleNews = bbcNews[indexPath.row]
-        }else{
-            singleNews = ignNews[indexPath.row]
-        }
+        let singleNews = news[indexPath.row]
         cell.favoriteClickedDelegate = self
         cell.configureCell(news: singleNews)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let newsToShow: News
-        if bbcSelected{
-            newsToShow = bbcNews[indexPath.row]
-        }else{
-            newsToShow = ignNews[indexPath.row]
-        }
+        let newsToShow = news[indexPath.row]
         guard let delegate = favoritesDelegate else {return}
         let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: newsToShow, delegate: delegate)
         self.navigationController?.pushViewController(detailsView, animated: false)
@@ -201,53 +151,26 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
             .subscribe(onNext: {[unowned self] (bool) in
                 self.showAlert()
             }).disposed(by: disposeBag)
-        
-        ignNewsSelectSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.tableReloadSubject.onNext(true)
-            }).disposed(by: disposeBag)
-        
-        
-        bbcNewsSelectSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.tableReloadSubject.onNext(true)
-            }).disposed(by: disposeBag)
     }
     
     @objc func getNewsSubjectFunction(){
         getNewsSubject.onNext(true)
     }
     
-    @objc func selectBbcNews(){
-        bbcSelected = true
-        bbcNewsSelectSubject.onNext(true)
-    }
-    
-    @objc func selectIgnNews(){
-        bbcSelected = false
-        ignNewsSelectSubject.onNext(true)
-    }
-    
     func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
-        return subject.flatMap({[unowned self] (bool) -> Observable<([News],[News], [RealmNews])> in
-            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.alamofire.getNewsAlamofireWay(jsonUrlString: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
-                return(bbcNews, ignNews, favNews)
+        return subject.flatMap({[unowned self] (bool) -> Observable<([News], [RealmNews])> in
+            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.database.getObjects()) { (articles, favNews) in
+                return(articles, favNews)
             }
             return observable
         })
         .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .map({[unowned self] (bbcNews, ignNews, realmNews) -> ([News],[News]) in
-                let bbcNewsFeedArray = self.createScreenData(news: bbcNews, realmNews: realmNews)
-                let ignNewsFeedArray = self.createScreenData(news: ignNews, realmNews: realmNews)
-                return (bbcNewsFeedArray, ignNewsFeedArray)
-            }).subscribe(onNext: { [unowned self] (bbcNewsFeed, ignNewsFeed) in
-                self.bbcNews = bbcNewsFeed
-                self.ignNews = ignNewsFeed
+            .map({[unowned self] (news, realmNews) -> [News] in
+                let newsFeedArray = self.createScreenData(news: news, realmNews: realmNews)
+                return newsFeedArray
+            }).subscribe(onNext: { newsFeed in
+                self.news = newsFeed
                 self.tableReloadSubject.onNext(true)
                 self.refreshAndLoaderSubject.onNext(false)
                 self.saveCurrentTime()
@@ -266,10 +189,6 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         return news
     }
     
-
-    
-    
-    
     func showAlert(){
         let alert = UIAlertController(title: "Error", message: "Something went wrong. Check your network.", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.getNewsSubjectFunction() }))
@@ -287,43 +206,10 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         return alert
     }
     
-    func addFavorites(news: News){
-        if let indexOfMainNews = self.bbcNews.firstIndex(where: {$0.title==news.title}) {
-            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-            self.bbcNews[indexOfMainNews].isFavorite = true
-            news.isFavorite = true
-            self.database.saveObject(news: news)
-                .observeOn(MainScheduler.instance)
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-                .subscribe(onNext: { (string) in
-                    print(string)
-                }).disposed(by: disposeBag)
-            self.tableView.reloadRows(at: [indexPath], with: .automatic)
-        }
-        if let indexOfMainNews = self.ignNews.firstIndex(where: {$0.title==news.title}) {
-            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-            self.ignNews[indexOfMainNews].isFavorite = true
-            news.isFavorite = true
-            self.database.saveObject(news: news)
-                .observeOn(MainScheduler.instance)
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-                .subscribe(onNext: { (string) in
-                    print(string)
-                }).disposed(by: disposeBag)
-            self.tableView.reloadRows(at: [indexPath], with: .automatic)
-        }
-        
-    }
-    
     func removeFavorites(news: News){
-        if let indexOfMainNews = self.bbcNews.firstIndex(where: {$0.title==news.title}) {
+        if let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) {
             let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-            self.bbcNews[indexOfMainNews].isFavorite = false
-            self.tableView.reloadRows(at: [indexPath], with: .automatic)
-        }
-        if let indexOfMainNews = self.ignNews.firstIndex(where: {$0.title==news.title}) {
-            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-            self.ignNews[indexOfMainNews].isFavorite = false
+            self.news[indexOfMainNews].isFavorite = false
             self.tableView.reloadRows(at: [indexPath], with: .automatic)
         }
         self.database.deleteObject(news: news)
@@ -334,15 +220,25 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
             }).disposed(by: disposeBag)
     }
     
+    func addFavorites(news: News){
+        guard let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) else {return}
+        let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
+        self.news[indexOfMainNews].isFavorite = true
+        news.isFavorite = true
+        self.database.saveObject(news: news)
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribe(onNext: { (string) in
+                print(string)
+            }).disposed(by: disposeBag)
+        self.tableView.reloadRows(at: [indexPath], with: .automatic)
+    }
+    
 }
 
 extension NewsTableViewController: FavoriteClickDelegate{
     func favoriteClicked(newsTitle: String) {
-        if let indexOfMainNews = bbcNews.firstIndex(where: {$0.title==newsTitle}) {
-            favoriteEdit?(bbcNews[indexOfMainNews])
-        }
-        if let indexOfMainNews = ignNews.firstIndex(where: {$0.title==newsTitle}) {
-            favoriteEdit?(ignNews[indexOfMainNews])
-        }
+        guard let indexOfMainNews = news.firstIndex(where: {$0.title==newsTitle}) else {return}
+        favoriteEdit?(news[indexOfMainNews])
     }
 }
