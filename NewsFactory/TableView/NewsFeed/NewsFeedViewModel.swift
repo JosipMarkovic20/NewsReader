@@ -81,11 +81,12 @@ class NewsFeedViewModel{
     func removeFavorites(subject: PublishSubject<News>) -> Disposable {
         
         return subject.flatMap({ [unowned self] (news) -> Observable<String> in
-            guard let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) else {return Observable.just("Error removing object")}
-            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-            let tableViewRowEnum = TableViewSubjectEnum.tableViewRowReload([indexPath])
-            self.news[indexOfMainNews].isFavorite = false
-            self.tableViewSubject.onNext(tableViewRowEnum)
+            guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
+                data.element.title == news.title
+            }) else {return Observable.just("Object not found!")}
+            let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
+            self.news[newsEnumerated.offset].isFavorite = false
+            self.tableViewSubject.onNext(.tableViewRowReload([indexPath]))
             return self.database.deleteObject(news: news)
         })
             .observeOn(MainScheduler.instance)
@@ -97,10 +98,12 @@ class NewsFeedViewModel{
     
     func addFavorites(subject: PublishSubject<News>) -> Disposable {
         return subject.flatMap({ [unowned self] (news) -> Observable<String> in
-            guard let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) else {return Observable.just("Error adding object")}
-            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
+            guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
+                data.element.title == news.title
+            }) else {return Observable.just("Object not found!")}
+            let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
             let tableViewRowEnum = TableViewSubjectEnum.tableViewRowReload([indexPath])
-            self.news[indexOfMainNews].isFavorite = true
+            self.news[newsEnumerated.offset].isFavorite = true
             news.isFavorite = true
             self.tableViewSubject.onNext(tableViewRowEnum)
             return self.database.saveObject(news: news)

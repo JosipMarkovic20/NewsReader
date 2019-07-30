@@ -20,8 +20,6 @@ class FavoritesViewModel{
     let addNewsSubject = PublishSubject<News>()
     let removeNewsSubject = PublishSubject<News>()
     
-    
-    
     func loadFavorites(subject: PublishSubject<Bool>) -> Disposable{
         news.removeAll()
         return subject.flatMap({ (bool) -> Observable<[RealmNews]> in
@@ -59,8 +57,10 @@ class FavoritesViewModel{
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (news) in
                 self.news.append(news)
-                guard let indexOfNews = self.news.firstIndex(where: {$0.title==news.title}) else {return}
-                let newIndexPath: IndexPath = IndexPath(row: indexOfNews, section: 0)
+                guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
+                    data.element.title == news.title
+                }) else {return}
+                let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
                 self.tableViewSubject.onNext(FavoritesTableViewSubjectEnum.rowInsert([newIndexPath]))
             })
     }
@@ -72,9 +72,11 @@ class FavoritesViewModel{
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (news) in
-                guard let indexOfFavorite = self.news.firstIndex(where: {$0.title==news.title}) else {return}
-                self.news.remove(at: indexOfFavorite)
-                let newIndexPath: IndexPath = IndexPath(row: indexOfFavorite, section: 0)
+                guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
+                    data.element.title == news.title
+                }) else {return}
+                self.news.remove(at: newsEnumerated.offset)
+                let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
                 self.tableViewSubject.onNext(FavoritesTableViewSubjectEnum.rowRemove([newIndexPath]))
             })
     }

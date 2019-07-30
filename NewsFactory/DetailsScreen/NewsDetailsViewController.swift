@@ -10,7 +10,6 @@ import UIKit
 import Kingfisher
 import RealmSwift
 import RxSwift
-import RxCocoa
 
 class NewsDetailsViewController: UIViewController {
     
@@ -39,11 +38,12 @@ class NewsDetailsViewController: UIViewController {
         return description
     }()
     
-    var news: News
     var delegate: FavoritesDelegate
+    let viewModel: NewsDetailsViewModel
+    let disposeBag = DisposeBag()
     
     init(news: News, delegate: FavoritesDelegate){
-        self.news = news
+        viewModel = NewsDetailsViewModel(news: news)
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
         setDataToViews(news: news)
@@ -56,6 +56,8 @@ class NewsDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        viewModel.checkForFavorites(subject: viewModel.checkForFavoritesSubject).disposed(by: disposeBag)
+        setupSubscriptions()
     }
     
     func setDataToViews(news: News){
@@ -74,7 +76,7 @@ class NewsDetailsViewController: UIViewController {
         view.addSubview(newsDescription)
         setupConstraints()
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "star"), style: .plain, target: self, action: #selector(editFavorites))
-        checkForFavorites()
+        viewModel.checkForFavoritesSubject.onNext(true)
     }
     
     func setupConstraints(){
@@ -93,15 +95,22 @@ class NewsDetailsViewController: UIViewController {
     }
     
     @objc func editFavorites(){
-        delegate.editFavorites(news: news)
-        checkForFavorites()
+        delegate.editFavorites(news: viewModel.news)
+        viewModel.checkForFavoritesSubject.onNext(true)
     }
     
-    func checkForFavorites(){
-        if news.isFavorite{
-            navigationItem.rightBarButtonItem?.tintColor = UIColor(red: 1, green: 0.87, blue: 0, alpha: 1)
-        }else{
-            navigationItem.rightBarButtonItem?.tintColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
-        }
+    func setupSubscriptions(){
+        viewModel.favoriteStatusSubject
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribe(onNext: {[unowned self] (bool) in
+                if self.viewModel.news.isFavorite{
+                    self.navigationItem.rightBarButtonItem?.tintColor = UIColor(red: 1, green: 0.87, blue: 0, alpha: 1)
+                }else{
+                    self.navigationItem.rightBarButtonItem?.tintColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+                }
+            }).disposed(by: disposeBag)
     }
+    
+
 }
