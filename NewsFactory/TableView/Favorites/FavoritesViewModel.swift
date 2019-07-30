@@ -22,7 +22,7 @@ class FavoritesViewModel{
     
     func loadFavorites(subject: PublishSubject<Bool>) -> Disposable{
         news.removeAll()
-        return subject.flatMap({ (bool) -> Observable<[RealmNews]> in
+        return subject.flatMap({[unowned self] (bool) -> Observable<[RealmNews]> in
             self.database.getObjects()
         })
             .observeOn(MainScheduler.instance)

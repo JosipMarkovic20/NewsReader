@@ -72,10 +72,13 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         } else {
             tableView.addSubview(refreshControl)
         }
-        refreshControl.addTarget(self, action: #selector(viewModel.getNewsSubjectFunction), for: .valueChanged)
+        refreshControl.addTarget(self, action: #selector(getNews), for: .valueChanged)
     }
     
 
+    @objc func getNews(){
+        viewModel.getNewsSubjectFunction()
+    }
     
     
     // MARK: - Table view data source
@@ -131,7 +134,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         viewModel.tableViewSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: { (tableViewSubjectEnum) in
+            .subscribe(onNext: {[unowned self] (tableViewSubjectEnum) in
                 switch tableViewSubjectEnum {
                 case .tableViewReload:
                     self.tableView.reloadData()
@@ -149,7 +152,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func showAlert(){
         let alert = UIAlertController(title: "Error", message: "Something went wrong. Check your network.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.viewModel.getNewsSubjectFunction() }))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.getNews() }))
         self.present(alert, animated: true)
     }
     

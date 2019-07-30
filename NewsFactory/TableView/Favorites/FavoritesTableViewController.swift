@@ -97,7 +97,7 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
         viewModel.tableViewSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: { (favoritesTableViewSubjectEnum) in
+            .subscribe(onNext: {[unowned self] (favoritesTableViewSubjectEnum) in
                 switch favoritesTableViewSubjectEnum {
                 case .rowRemove(let indexPath):
                     self.tableView.deleteRows(at: indexPath, with: .automatic)
