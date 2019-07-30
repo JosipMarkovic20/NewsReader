@@ -88,6 +88,98 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		5F2B5B4222F083F200CC01CC /* Delegates */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A55F22DC68A700D15769 /* AppDelegate.swift */,
+				5F3760E022E1BB1E00AF9007 /* FavoritesDelegate.swift */,
+			);
+			path = Delegates;
+			sourceTree = "<group>";
+		};
+		5F2B5B4322F083F400CC01CC /* DetailsScreen */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A58722DCB72500D15769 /* NewsDetailsViewController.swift */,
+			);
+			path = DetailsScreen;
+			sourceTree = "<group>";
+		};
+		5F2B5B4422F083F500CC01CC /* TableView */ = {
+			isa = PBXGroup;
+			children = (
+				5F2B5B4B22F084B300CC01CC /* Favorites */,
+				5F2B5B4A22F084A900CC01CC /* NewsFeed */,
+				5F93A58322DC6CE300D15769 /* NewsTableViewCell.swift */,
+			);
+			path = TableView;
+			sourceTree = "<group>";
+		};
+		5F2B5B4522F083F700CC01CC /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
+		5F2B5B4622F083F900CC01CC /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				5F43665522E86F0A00E015EF /* AlamofireManager.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		5F2B5B4722F083FB00CC01CC /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				5F2B5B4C22F084C800CC01CC /* Model */,
+				5F37EFFE22DF0D55007C570E /* RealmManager.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		5F2B5B4822F083FC00CC01CC /* TabBarController */ = {
+			isa = PBXGroup;
+			children = (
+				5F37F00022DF4A4F007C570E /* CustomTabBarController.swift */,
+			);
+			path = TabBarController;
+			sourceTree = "<group>";
+		};
+		5F2B5B4922F0846B00CC01CC /* NewsModel */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A58122DC6A5D00D15769 /* News.swift */,
+				5F2C4BA922EED21A00E25FD0 /* ExpandableNews.swift */,
+			);
+			path = NewsModel;
+			sourceTree = "<group>";
+		};
+		5F2B5B4A22F084A900CC01CC /* NewsFeed */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A57F22DC691800D15769 /* NewsTableViewController.swift */,
+			);
+			path = NewsFeed;
+			sourceTree = "<group>";
+		};
+		5F2B5B4B22F084B300CC01CC /* Favorites */ = {
+			isa = PBXGroup;
+			children = (
+				5F642F5F22DF5149003847F5 /* FavoritesTableViewController.swift */,
+			);
+			path = Favorites;
+			sourceTree = "<group>";
+		};
+		5F2B5B4C22F084C800CC01CC /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				5F37EFFC22DEFC23007C570E /* RealmNews.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		5F93A55322DC68A700D15769 = {
 			isa = PBXGroup;
 			children = (
@@ -111,18 +203,14 @@
 		5F93A55E22DC68A700D15769 /* NewsFactory */ = {
 			isa = PBXGroup;
 			children = (
-				5F93A55F22DC68A700D15769 /* AppDelegate.swift */,
-				5F93A58122DC6A5D00D15769 /* News.swift */,
-				5F37EFFC22DEFC23007C570E /* RealmNews.swift */,
-				5F37EFFE22DF0D55007C570E /* RealmManager.swift */,
-				5F2C4BA922EED21A00E25FD0 /* ExpandableNews.swift */,
-				5F43665522E86F0A00E015EF /* AlamofireManager.swift */,
-				5F93A58322DC6CE300D15769 /* NewsTableViewCell.swift */,
-				5F93A57F22DC691800D15769 /* NewsTableViewController.swift */,
-				5F642F5F22DF5149003847F5 /* FavoritesTableViewController.swift */,
-				5F93A58722DCB72500D15769 /* NewsDetailsViewController.swift */,
-				5F37F00022DF4A4F007C570E /* CustomTabBarController.swift */,
-				5F3760E022E1BB1E00AF9007 /* FavoritesDelegate.swift */,
+				5F2B5B4222F083F200CC01CC /* Delegates */,
+				5F2B5B4922F0846B00CC01CC /* NewsModel */,
+				5F2B5B4522F083F700CC01CC /* Enums */,
+				5F2B5B4722F083FB00CC01CC /* Persistence */,
+				5F2B5B4622F083F900CC01CC /* Networking */,
+				5F2B5B4422F083F500CC01CC /* TableView */,
+				5F2B5B4322F083F400CC01CC /* DetailsScreen */,
+				5F2B5B4822F083FC00CC01CC /* TabBarController */,
 				5F93A56622DC68A800D15769 /* Assets.xcassets */,
 				5F93A56822DC68A800D15769 /* LaunchScreen.storyboard */,
 				5F93A56B22DC68A800D15769 /* Info.plist */,
