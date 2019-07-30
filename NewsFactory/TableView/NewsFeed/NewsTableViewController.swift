@@ -16,21 +16,14 @@ import RxCocoa
 class NewsTableViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     //MARK: Properties
-    let bbcNewsUrl: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=aeeabfe03a71457ebf1167aa96751e37"
-    var news = [News]()
     let cellIdentifier = "NewsTableViewCell"
-    let alamofire = AlamofireManager()
     var loader: UIAlertController?
     let standardUserDefaults = UserDefaults.standard
     private let refreshControl = UIRefreshControl()
-    let database = RealmManager()
-    let disposeBag = DisposeBag()
     var favoritesDelegate: FavoritesDelegate?
     var favoriteEdit: ((News) -> Void)?
-    let tableReloadSubject = PublishSubject<Bool>()
-    let getNewsSubject = PublishSubject<Bool>()
-    let refreshAndLoaderSubject = PublishSubject<Bool>()
-    let alertSubject = PublishSubject<Bool>()
+    let viewModel = NewsFeedViewModel()
+    let disposeBag = DisposeBag()
     
     
     var tableView: UITableView = {
@@ -43,11 +36,11 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         super.viewDidLoad()
         setupSubscriptions()
         setupUI()
-        collectAndPrepareData(for: getNewsSubject).disposed(by: disposeBag)
+        funcToDispose()
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        getDataToShow()
+        viewModel.getDataToShow()
     }
     
     func setupUI(){
@@ -79,21 +72,11 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         } else {
             tableView.addSubview(refreshControl)
         }
-        refreshControl.addTarget(self, action: #selector(getNewsSubjectFunction), for: .valueChanged)
+        refreshControl.addTarget(self, action: #selector(viewModel.getNewsSubjectFunction), for: .valueChanged)
     }
     
-    func getDataToShow(){
-        let lastKnownTime = standardUserDefaults.integer(forKey: "Current time")
-        if Int(Date().timeIntervalSince1970)-lastKnownTime>300 || news.isEmpty{
-            refreshAndLoaderSubject.onNext(true)
-            getNewsSubjectFunction()
-        }
-    }
+
     
-    func saveCurrentTime(){
-        let currentTime = Date().timeIntervalSince1970
-        standardUserDefaults.set(currentTime, forKey: "Current time")
-    }
     
     // MARK: - Table view data source
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -103,22 +86,22 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return news.count
+        return viewModel.news.count
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let singleNews = viewModel.news[indexPath.row]
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
-        let singleNews = news[indexPath.row]
         cell.favoriteClickedDelegate = self
         cell.configureCell(news: singleNews)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let newsToShow = news[indexPath.row]
+        let newsToShow = viewModel.news[indexPath.row]
         guard let delegate = favoritesDelegate else {return}
         let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: newsToShow, delegate: delegate)
         self.navigationController?.pushViewController(detailsView, animated: false)
@@ -126,14 +109,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func setupSubscriptions(){
         
-        tableReloadSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.tableView.reloadData()
-            }).disposed(by: disposeBag)
-        
-        refreshAndLoaderSubject
+        viewModel.refreshAndLoaderSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
@@ -145,53 +121,35 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }).disposed(by: disposeBag)
         
-        alertSubject
+        viewModel.alertSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
                 self.showAlert()
             }).disposed(by: disposeBag)
-    }
-    
-    @objc func getNewsSubjectFunction(){
-        getNewsSubject.onNext(true)
-    }
-    
-    func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
-        return subject.flatMap({[unowned self] (bool) -> Observable<([News], [RealmNews])> in
-            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.database.getObjects()) { (articles, favNews) in
-                return(articles, favNews)
-            }
-            return observable
-        })
-        .observeOn(MainScheduler.instance)
+        
+        viewModel.tableViewSubject
+            .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .map({[unowned self] (news, realmNews) -> [News] in
-                let newsFeedArray = self.createScreenData(news: news, realmNews: realmNews)
-                return newsFeedArray
-            }).subscribe(onNext: { newsFeed in
-                self.news = newsFeed
-                self.tableReloadSubject.onNext(true)
-                self.refreshAndLoaderSubject.onNext(false)
-                self.saveCurrentTime()
-            }, onError: { [unowned self] error in
-                self.alertSubject.onNext(true)
-                self.refreshAndLoaderSubject.onNext(false)
-            })
+            .subscribe(onNext: { (tableViewSubjectEnum) in
+                switch tableViewSubjectEnum {
+                case .tableViewReload:
+                    self.tableView.reloadData()
+                case .tableViewRowReload(let indexPath):
+                    self.tableView.reloadRows(at: indexPath, with: .automatic)
+                }
+            }).disposed(by: disposeBag)
     }
     
-    func createScreenData(news: [News], realmNews: [RealmNews]) -> [News]{
-        for favoriteNews in realmNews{
-            if let indexOfMainNews = news.firstIndex(where: {$0.title==favoriteNews.realmTitle}){
-                news[indexOfMainNews].isFavorite = true
-            }
-        }
-        return news
+    func funcToDispose(){
+        viewModel.collectAndPrepareData(for: viewModel.getNewsSubject).disposed(by: disposeBag)
+        viewModel.removeFavorites(subject: viewModel.removeFavoritesSubject).disposed(by: disposeBag)
+        viewModel.addFavorites(subject: viewModel.addFavoriteSubject).disposed(by: disposeBag)
     }
     
     func showAlert(){
         let alert = UIAlertController(title: "Error", message: "Something went wrong. Check your network.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.getNewsSubjectFunction() }))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.viewModel.getNewsSubjectFunction() }))
         self.present(alert, animated: true)
     }
     
@@ -207,38 +165,17 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func removeFavorites(news: News){
-        if let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) {
-            let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-            self.news[indexOfMainNews].isFavorite = false
-            self.tableView.reloadRows(at: [indexPath], with: .automatic)
-        }
-        self.database.deleteObject(news: news)
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: { (string) in
-                print(string)
-            }).disposed(by: disposeBag)
+        viewModel.removeFavoritesSubject.onNext(news)
     }
     
     func addFavorites(news: News){
-        guard let indexOfMainNews = self.news.firstIndex(where: {$0.title==news.title}) else {return}
-        let indexPath: IndexPath = IndexPath(row: indexOfMainNews, section: 0)
-        self.news[indexOfMainNews].isFavorite = true
-        news.isFavorite = true
-        self.database.saveObject(news: news)
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: { (string) in
-                print(string)
-            }).disposed(by: disposeBag)
-        self.tableView.reloadRows(at: [indexPath], with: .automatic)
+        viewModel.addFavoriteSubject.onNext(news)
     }
-    
 }
 
 extension NewsTableViewController: FavoriteClickDelegate{
     func favoriteClicked(newsTitle: String) {
-        guard let indexOfMainNews = news.firstIndex(where: {$0.title==newsTitle}) else {return}
-        favoriteEdit?(news[indexOfMainNews])
+        guard let indexOfMainNews = viewModel.news.firstIndex(where: {$0.title==newsTitle}) else {return}
+        favoriteEdit?(viewModel.news[indexOfMainNews])
     }
 }

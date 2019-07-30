@@ -12,8 +12,6 @@ import RxCocoa
 
 class AlamofireManager {
     
-    
-    
     func getNewsAlamofireWay(jsonUrlString: String) -> Observable<[News]>{
         
         return Observable.create{observer in

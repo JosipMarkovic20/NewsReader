@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5F2B5B3822F01A9A00CC01CC /* NewsFeedViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2B5B3722F01A9A00CC01CC /* NewsFeedViewModel.swift */; };
+		5F2B5B3B22F0232C00CC01CC /* TableViewSubjectEnum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2B5B3A22F0232C00CC01CC /* TableViewSubjectEnum.swift */; };
+		5F2B5B3D22F0505200CC01CC /* FavoritesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F2B5B3C22F0505200CC01CC /* FavoritesViewModel.swift */; };
 		5F3760E122E1BB1E00AF9007 /* FavoritesDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3760E022E1BB1E00AF9007 /* FavoritesDelegate.swift */; };
 		5F37EFFD22DEFC23007C570E /* RealmNews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F37EFFC22DEFC23007C570E /* RealmNews.swift */; };
 		5F37EFFF22DF0D55007C570E /* RealmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F37EFFE22DF0D55007C570E /* RealmManager.swift */; };
@@ -36,6 +39,9 @@
 
 /* Begin PBXFileReference section */
 		24D9839F2E4820F4399768CA /* Pods_NewsFactory.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NewsFactory.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F2B5B3722F01A9A00CC01CC /* NewsFeedViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsFeedViewModel.swift; sourceTree = "<group>"; };
+		5F2B5B3A22F0232C00CC01CC /* TableViewSubjectEnum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewSubjectEnum.swift; sourceTree = "<group>"; };
+		5F2B5B3C22F0505200CC01CC /* FavoritesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesViewModel.swift; sourceTree = "<group>"; };
 		5F3760E022E1BB1E00AF9007 /* FavoritesDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesDelegate.swift; sourceTree = "<group>"; };
 		5F37EFFC22DEFC23007C570E /* RealmNews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmNews.swift; sourceTree = "<group>"; };
 		5F37EFFE22DF0D55007C570E /* RealmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmManager.swift; sourceTree = "<group>"; };
@@ -86,6 +92,100 @@
 			path = Pods;
 			sourceTree = "<group>";
 		};
+		5F2B5B2B22F018DE00CC01CC /* TabBarController */ = {
+			isa = PBXGroup;
+			children = (
+				5F37F00022DF4A4F007C570E /* CustomTabBarController.swift */,
+			);
+			path = TabBarController;
+			sourceTree = "<group>";
+		};
+		5F2B5B2C22F018E100CC01CC /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				5F2B5B3322F019E000CC01CC /* Model */,
+				5F37EFFE22DF0D55007C570E /* RealmManager.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		5F2B5B2D22F018E400CC01CC /* NewsModel */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A58122DC6A5D00D15769 /* News.swift */,
+			);
+			path = NewsModel;
+			sourceTree = "<group>";
+		};
+		5F2B5B2F22F0192E00CC01CC /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				5F43665522E86F0A00E015EF /* AlamofireManager.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		5F2B5B3022F0193100CC01CC /* TableView */ = {
+			isa = PBXGroup;
+			children = (
+				5F2B5B3522F019FF00CC01CC /* Favorites */,
+				5F2B5B3422F019F400CC01CC /* NewsFeed */,
+				5F93A58322DC6CE300D15769 /* NewsTableViewCell.swift */,
+			);
+			path = TableView;
+			sourceTree = "<group>";
+		};
+		5F2B5B3122F0197100CC01CC /* DetailsScreen */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A58722DCB72500D15769 /* NewsDetailsViewController.swift */,
+			);
+			path = DetailsScreen;
+			sourceTree = "<group>";
+		};
+		5F2B5B3222F0199E00CC01CC /* Delegates */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A55F22DC68A700D15769 /* AppDelegate.swift */,
+				5F3760E022E1BB1E00AF9007 /* FavoritesDelegate.swift */,
+			);
+			path = Delegates;
+			sourceTree = "<group>";
+		};
+		5F2B5B3322F019E000CC01CC /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				5F37EFFC22DEFC23007C570E /* RealmNews.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		5F2B5B3422F019F400CC01CC /* NewsFeed */ = {
+			isa = PBXGroup;
+			children = (
+				5F93A57F22DC691800D15769 /* NewsTableViewController.swift */,
+				5F2B5B3722F01A9A00CC01CC /* NewsFeedViewModel.swift */,
+			);
+			path = NewsFeed;
+			sourceTree = "<group>";
+		};
+		5F2B5B3522F019FF00CC01CC /* Favorites */ = {
+			isa = PBXGroup;
+			children = (
+				5F642F5F22DF5149003847F5 /* FavoritesTableViewController.swift */,
+				5F2B5B3C22F0505200CC01CC /* FavoritesViewModel.swift */,
+			);
+			path = Favorites;
+			sourceTree = "<group>";
+		};
+		5F2B5B3922F0230800CC01CC /* Enums */ = {
+			isa = PBXGroup;
+			children = (
+				5F2B5B3A22F0232C00CC01CC /* TableViewSubjectEnum.swift */,
+			);
+			path = Enums;
+			sourceTree = "<group>";
+		};
 		5F93A55322DC68A700D15769 = {
 			isa = PBXGroup;
 			children = (
@@ -109,17 +209,14 @@
 		5F93A55E22DC68A700D15769 /* NewsFactory */ = {
 			isa = PBXGroup;
 			children = (
-				5F93A55F22DC68A700D15769 /* AppDelegate.swift */,
-				5F93A58122DC6A5D00D15769 /* News.swift */,
-				5F37EFFC22DEFC23007C570E /* RealmNews.swift */,
-				5F37EFFE22DF0D55007C570E /* RealmManager.swift */,
-				5F43665522E86F0A00E015EF /* AlamofireManager.swift */,
-				5F93A58322DC6CE300D15769 /* NewsTableViewCell.swift */,
-				5F93A57F22DC691800D15769 /* NewsTableViewController.swift */,
-				5F642F5F22DF5149003847F5 /* FavoritesTableViewController.swift */,
-				5F93A58722DCB72500D15769 /* NewsDetailsViewController.swift */,
-				5F37F00022DF4A4F007C570E /* CustomTabBarController.swift */,
-				5F3760E022E1BB1E00AF9007 /* FavoritesDelegate.swift */,
+				5F2B5B3222F0199E00CC01CC /* Delegates */,
+				5F2B5B3922F0230800CC01CC /* Enums */,
+				5F2B5B2D22F018E400CC01CC /* NewsModel */,
+				5F2B5B2C22F018E100CC01CC /* Persistence */,
+				5F2B5B2F22F0192E00CC01CC /* Networking */,
+				5F2B5B3022F0193100CC01CC /* TableView */,
+				5F2B5B3122F0197100CC01CC /* DetailsScreen */,
+				5F2B5B2B22F018DE00CC01CC /* TabBarController */,
 				5F93A56622DC68A800D15769 /* Assets.xcassets */,
 				5F93A56822DC68A800D15769 /* LaunchScreen.storyboard */,
 				5F93A56B22DC68A800D15769 /* Info.plist */,
@@ -290,11 +387,14 @@
 			files = (
 				5F37EFFD22DEFC23007C570E /* RealmNews.swift in Sources */,
 				5F93A58822DCB72500D15769 /* NewsDetailsViewController.swift in Sources */,
+				5F2B5B3B22F0232C00CC01CC /* TableViewSubjectEnum.swift in Sources */,
 				5F37F00122DF4A4F007C570E /* CustomTabBarController.swift in Sources */,
 				5F642F6022DF5149003847F5 /* FavoritesTableViewController.swift in Sources */,
 				5F93A58222DC6A5D00D15769 /* News.swift in Sources */,
 				5F93A58022DC691800D15769 /* NewsTableViewController.swift in Sources */,
 				5F93A58422DC6CE300D15769 /* NewsTableViewCell.swift in Sources */,
+				5F2B5B3D22F0505200CC01CC /* FavoritesViewModel.swift in Sources */,
+				5F2B5B3822F01A9A00CC01CC /* NewsFeedViewModel.swift in Sources */,
 				5F37EFFF22DF0D55007C570E /* RealmManager.swift in Sources */,
 				5F43665622E86F0A00E015EF /* AlamofireManager.swift in Sources */,
 				5F3760E122E1BB1E00AF9007 /* FavoritesDelegate.swift in Sources */,

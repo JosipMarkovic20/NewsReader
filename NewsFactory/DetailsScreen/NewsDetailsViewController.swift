@@ -39,7 +39,6 @@ class NewsDetailsViewController: UIViewController {
         return description
     }()
     
-    let database = RealmManager()
     var news: News
     var delegate: FavoritesDelegate
     
