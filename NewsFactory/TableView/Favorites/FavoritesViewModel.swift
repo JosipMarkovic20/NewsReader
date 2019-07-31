@@ -17,8 +17,7 @@ class FavoritesViewModel{
     var news = [News]()
     let loadFavoritesSubject = PublishSubject<Bool>()
     let tableViewSubject = PublishSubject<FavoritesTableViewSubjectEnum>()
-    let addNewsSubject = PublishSubject<News>()
-    let removeNewsSubject = PublishSubject<News>()
+    let manageFavoritesSubject = PublishSubject<News>()
     
     func loadFavorites(subject: PublishSubject<Bool>) -> Disposable{
         news.removeAll()
@@ -49,35 +48,31 @@ class FavoritesViewModel{
         return favoriteNewsResult
     }
     
-    func addFavorites(subject: PublishSubject<News>) -> Disposable{
-        return subject.flatMap({ (news) -> Observable<News> in
-            return Observable.just(news)
-        })
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (news) in
+    
+    func manageFavorites(subject: PublishSubject<News>) -> Disposable{
+        return subject.flatMap({ (news) -> Observable<String> in
+            if !news.isFavorite{
                 self.news.append(news)
                 guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
                     data.element.title == news.title
-                }) else {return}
+                }) else {return Observable.just("Object not found!")}
                 let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
                 self.tableViewSubject.onNext(.rowInsert([newIndexPath]))
-            })
-    }
-    
-    func removeFavorites(subject: PublishSubject<News>) -> Disposable{
-        return subject.flatMap({ (news) -> Observable<News> in
-            return Observable.just(news)
-        })
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (news) in
+                return Observable.just("Favorite added to favorites screen")
+            }else{
                 guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
                     data.element.title == news.title
-                }) else {return}
+                }) else {return Observable.just("Object not found")}
                 self.news.remove(at: newsEnumerated.offset)
                 let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
                 self.tableViewSubject.onNext(.rowRemove([newIndexPath]))
+                return Observable.just("Favorite removed from favorites screen")
+            }
+        })
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribe(onNext: { (string) in
+                print(string)
             })
     }
 }

@@ -20,28 +20,23 @@ class NewsFeedViewModel{
     let alamofire = AlamofireManager()
     let standardUserDefaults = UserDefaults.standard
     let database = RealmManager()
-    let tableReloadSubject = PublishSubject<Bool>()
-    let getNewsSubject = PublishSubject<Bool>()
     let refreshAndLoaderSubject = PublishSubject<Bool>()
-    let alertSubject = PublishSubject<Bool>()
     var bbcSelected: Bool = true
     let sectionExpandSubject = PublishSubject<SectionExpandEnum>()
-    let favoritesControlSubject = PublishSubject<IndexPath>()
     let toastSubject = PublishSubject<String>()
-    let realmAlertSubject = PublishSubject<Bool>()
     let toggleExpandSubject = PublishSubject<UIButton>()
-    let newsRefreshSubject = PublishSubject<Bool>()
-    let removeFavoritesSubject = PublishSubject<News>()
-    let addFavoriteSubject = PublishSubject<News>()
-    let getInitalDataSubject = PublishSubject<Bool>()
+    let manageFavoritesSubject = PublishSubject<News>()
+    let alertPopUpSubject = PublishSubject<AlertSubjectEnum>()
+    let tableViewControlSubject = PublishSubject<NewsFeedTableViewSubjectEnum>()
+    let fetchNewsSubject = PublishSubject<DataFetchEnum>()
+    let getNewsDataSubject = PublishSubject<Bool>()
     var disposeBag = DisposeBag()
     
     
     func getDataToShow(){
         let lastKnownTime = standardUserDefaults.integer(forKey: "Current time")
         if Int(Date().timeIntervalSince1970)-lastKnownTime>300 || self.allNews.isEmpty{
-            refreshAndLoaderSubject.onNext(true)
-            getNewsSubjectFunction()
+            getNewsDataSubject.onNext(true)
         }
     }
     
@@ -69,10 +64,6 @@ class NewsFeedViewModel{
         }
     }
     
-    @objc func getNewsSubjectFunction(){
-        getNewsSubject.onNext(true)
-    }
-    
     func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
         return subject.flatMap({[unowned self] (bool) -> Observable<([News], [News], [RealmNews])> in
             let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.alamofire.getNewsAlamofireWay(jsonUrlString: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
@@ -83,16 +74,17 @@ class NewsFeedViewModel{
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .map({[unowned self] (bbcNews, ignNews, realmNews) -> Void in
+                self.allNews.removeAll()
                 let bbcNewsFeedArray = self.createScreenData(news: bbcNews, realmNews: realmNews, title: "BBC News")
                 let ignNewsFeedArray = self.createScreenData(news: ignNews, realmNews: realmNews, title: "IGN News")
                 self.allNews.append(bbcNewsFeedArray)
                 self.allNews.append(ignNewsFeedArray)
             }).subscribe(onNext: { [unowned self] (allNewsFeed) in
-                self.tableReloadSubject.onNext(true)
+                self.tableViewControlSubject.onNext(.reloadTable)
                 self.refreshAndLoaderSubject.onNext(false)
                 self.saveCurrentTime()
                 }, onError: { [unowned self] error in
-                    self.alertSubject.onNext(true)
+                    self.alertPopUpSubject.onNext(.alamofireAlert)
                     self.refreshAndLoaderSubject.onNext(false)
             })
     }
@@ -109,63 +101,50 @@ class NewsFeedViewModel{
         return expandableNews
     }
     
-    func removeFavorites(subject: PublishSubject<News>) -> Disposable {
+    func manageFavorites(subject: PublishSubject<News>) -> Disposable{
         
         return subject.flatMap({ [unowned self] (news) -> Observable<String> in
-            if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
-                data.element.title == news.title
-            }){
-                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
-                self.allNews[0].news[newsEnumerated.offset].isFavorite = false
-                self.favoritesControlSubject.onNext(indexPath)
+            if news.isFavorite{
+                if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
+                    data.element.title == news.title
+                }){
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: false)
+                }
+                if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
+                    data.element.title == news.title
+                }){
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 1, state: false)
+                }
+                return self.database.deleteObject(news: news)
+            }else{
+                if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
+                    data.element.title == news.title
+                }){
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: true)
+                }
+                if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
+                    data.element.title == news.title
+                }){
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 1, state: true)
+                }
+                news.isFavorite = true
+                return self.database.saveObject(news: news)
             }
-            if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
-                data.element.title == news.title
-            }){
-                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 1)
-                self.allNews[1].news[newsEnumerated.offset].isFavorite = false
-                self.favoritesControlSubject.onNext(indexPath)
-            }
-            return self.database.deleteObject(news: news)
         })
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (string) in
-                self.toastSubject.onNext("Favorite Removed")
+                self.toastSubject.onNext(string)
                 print(string)
                 },onError: {[unowned self](error) in
                     print(error)
-                    self.realmAlertSubject.onNext(true)
+                    self.alertPopUpSubject.onNext(.realmAlert)
             })
     }
     
-    func addFavorites(subject: PublishSubject<News>) -> Disposable {
-        return subject.flatMap({ [unowned self] (news) -> Observable<String> in
-            if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
-                data.element.title == news.title
-            }){
-                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
-                self.allNews[0].news[newsEnumerated.offset].isFavorite = true
-                self.favoritesControlSubject.onNext(indexPath)
-            }
-            if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
-                data.element.title == news.title
-            }){
-                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 1)
-                self.allNews[1].news[newsEnumerated.offset].isFavorite = true
-                self.favoritesControlSubject.onNext(indexPath)
-            }
-            news.isFavorite = true
-            return self.database.saveObject(news: news)
-        })
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (string) in
-                self.toastSubject.onNext("Favorite Added")
-                print(string)
-                },onError: {[unowned self](error) in
-                    print(error)
-                    self.realmAlertSubject.onNext(true)
-            })
+    func reloadRowAt(row: Int, section: Int, state: Bool){
+        let indexPath: IndexPath = IndexPath(row: row, section: section)
+        self.allNews[section].news[row].isFavorite = state
+        self.tableViewControlSubject.onNext(.reloadRows([indexPath]))
     }
 }

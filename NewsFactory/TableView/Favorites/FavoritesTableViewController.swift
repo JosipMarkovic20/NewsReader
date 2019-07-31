@@ -32,9 +32,8 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     func funcToDispose(){
-        viewModel.addFavorites(subject: viewModel.addNewsSubject).disposed(by: disposeBag)
         viewModel.loadFavorites(subject: viewModel.loadFavoritesSubject).disposed(by: disposeBag)
-        viewModel.removeFavorites(subject: viewModel.removeNewsSubject).disposed(by: disposeBag)
+//        viewModel.manageFavorites(subject: viewModel.manageFavoritesSubject).disposed(by: disposeBag)   
     }
     
     func setupUI(){
@@ -106,14 +105,7 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
                 }
             }).disposed(by: disposeBag)
     }
-    
-    func addFavorites(news: News){
-        viewModel.addNewsSubject.onNext(news)
-    }
-    
-    func removeFavorites(news: News){
-        viewModel.removeNewsSubject.onNext(news)
-    }
+
 }
 
 

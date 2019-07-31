@@ -2,4 +2,118 @@
 <Bucket
    type = "0"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+            timestampString = "586268356.899305"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "52"
+            endingLineNumber = "52"
+            landmarkName = "manageFavorites(subject:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+            timestampString = "586268356.8993599"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "54"
+            endingLineNumber = "54"
+            landmarkName = "manageFavorites(subject:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+            timestampString = "586268356.899399"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "61"
+            endingLineNumber = "61"
+            landmarkName = "manageFavorites(subject:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+            timestampString = "586268356.899434"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "63"
+            endingLineNumber = "63"
+            landmarkName = "manageFavorites(subject:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (NewsFactory.News) -&gt; RxSwift.Observable&lt;Swift.String&gt; in NewsFactory.FavoritesViewModel.manageFavorites(subject: RxSwift.PublishSubject&lt;NewsFactory.News&gt;) -&gt; RxSwift.Disposable"
+                  moduleName = "NewsFactory"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/josipmarkovic/Documents/NewsFactory/NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+                  timestampString = "586267794.0112081"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "63"
+                  endingLineNumber = "63"
+                  offsetFromSymbolStart = "1530">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #2 ((offset: Swift.Int, element: NewsFactory.News)) -&gt; Swift.Bool in closure #1 (NewsFactory.News) -&gt; RxSwift.Observable&lt;Swift.String&gt; in NewsFactory.FavoritesViewModel.manageFavorites(subject: RxSwift.PublishSubject&lt;NewsFactory.News&gt;) -&gt; RxSwift.Disposable"
+                  moduleName = "NewsFactory"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/josipmarkovic/Documents/NewsFactory/NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+                  timestampString = "586267794.0128191"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "64"
+                  endingLineNumber = "64"
+                  offsetFromSymbolStart = "35">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "NewsFactory/TableView/Favorites/FavoritesViewModel.swift"
+            timestampString = "586268356.899467"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "69"
+            endingLineNumber = "69"
+            landmarkName = "manageFavorites(subject:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

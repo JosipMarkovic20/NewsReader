@@ -13,3 +13,8 @@ enum FavoritesTableViewSubjectEnum{
     case rowRemove([IndexPath])
     case rowInsert([IndexPath])
 }
+
+enum NewsFeedTableViewSubjectEnum{
+    case reloadRows([IndexPath])
+    case reloadTable
+}

@@ -32,10 +32,11 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         setupSubscriptions()
         setupUI()
         funcToDispose()
+        viewModel.refreshAndLoaderSubject.onNext(true)
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        viewModel.getInitalDataSubject.onNext(true)
+        viewModel.fetchNewsSubject.onNext(.getNews)
     }
     
     func setupUI(){
@@ -72,13 +73,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     @objc func refreshNews(){
-        viewModel.newsRefreshSubject.onNext(true)
+        viewModel.fetchNewsSubject.onNext(.refreshNews)
     }
     
     func funcToDispose(){
-        viewModel.collectAndPrepareData(for: viewModel.getNewsSubject).disposed(by: disposeBag)
-        viewModel.removeFavorites(subject: viewModel.removeFavoritesSubject).disposed(by: disposeBag)
-        viewModel.addFavorites(subject: viewModel.addFavoriteSubject).disposed(by: disposeBag)
+        viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
+//        viewModel.manageFavorites(subject: viewModel.manageFavoritesSubject).disposed(by: disposeBag)
     }
     
     // MARK: - Table view data source
@@ -135,13 +135,6 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func setupSubscriptions(){
         
-        viewModel.tableReloadSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.tableView.reloadData()
-            }).disposed(by: disposeBag)
-        
         viewModel.refreshAndLoaderSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
@@ -152,13 +145,6 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                     self.loader?.dismiss(animated: true, completion: nil)
                     self.refreshControl.endRefreshing()
                 }
-            }).disposed(by: disposeBag)
-        
-        viewModel.alertSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.showAlert()
             }).disposed(by: disposeBag)
         
         viewModel.sectionExpandSubject
@@ -173,11 +159,22 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }).disposed(by: disposeBag)
         
-        viewModel.favoritesControlSubject
+        viewModel.toggleExpandSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (indexPath) in
-                self.tableView.reloadRows(at: [indexPath], with: .automatic)
+            .subscribe(onNext: {[unowned self] (button) in
+                self.viewModel.toggleExpand(button: button)
+            }).disposed(by: disposeBag)
+        
+        viewModel.tableViewControlSubject
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background)).subscribe(onNext: { (enumCase) in
+                switch enumCase{
+                case .reloadRows(let indexPath):
+                    self.tableView.reloadRows(at: indexPath, with: .automatic)
+                case .reloadTable:
+                    self.tableView.reloadData()
+                }
             }).disposed(by: disposeBag)
         
         viewModel.toastSubject
@@ -187,57 +184,41 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 self.showToast(controller: self, message: string, seconds: 1)
             }).disposed(by: disposeBag)
         
-        viewModel.realmAlertSubject
+        viewModel.fetchNewsSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.showRealmAlert()
+            .subscribe(onNext: { (enumCase) in
+                switch enumCase{
+                case .getNews:
+                    self.viewModel.getDataToShow()
+                case .refreshNews:
+                    print("refresh")
+                    self.viewModel.getNewsDataSubject.onNext(true)
+                }
             }).disposed(by: disposeBag)
         
-        viewModel.toggleExpandSubject
+        viewModel.alertPopUpSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (button) in
-                self.viewModel.toggleExpand(button: button)
+            .subscribe(onNext: { (enumCase) in
+                self.showAlert(alertEnumCase: enumCase)
             }).disposed(by: disposeBag)
         
-        viewModel.newsRefreshSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.viewModel.getNewsSubjectFunction()
-            }).disposed(by: disposeBag)
-        
-        viewModel.getInitalDataSubject
-            .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .subscribe(onNext: {[unowned self] (bool) in
-                self.viewModel.getDataToShow()
-            }).disposed(by: disposeBag)
-    
     }
     
-    func removeFavorites(news: News){
-        viewModel.removeFavoritesSubject.onNext(news)
-    }
-    
-    func addFavorites(news: News){
-        viewModel.addFavoriteSubject.onNext(news)
-    }
-    
-    
-    func showAlert(){
-        let alert = UIAlertController(title: "Error", message: "Something went wrong. Check your network.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.refreshNews() }))
-        self.present(alert, animated: true)
-    }
-    
-    func showRealmAlert(){
-        let alert = UIAlertController(title: "Error", message: "Something went wrong.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) in
-            alert.dismiss(animated: true, completion: nil)
-        }))
-        self.present(alert, animated: true)
+    func showAlert(alertEnumCase: AlertSubjectEnum){
+        switch alertEnumCase{
+        case .alamofireAlert:
+            let alert = UIAlertController(title: "Error", message: "Something went wrong. Check your network.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: {[unowned self](action:UIAlertAction!) in self.refreshNews() }))
+            self.present(alert, animated: true)
+        case .realmAlert:
+            let alert = UIAlertController(title: "Error", message: "Something went wrong.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction) in
+                alert.dismiss(animated: true, completion: nil)
+            }))
+            self.present(alert, animated: true)
+        }
     }
     
     func showLoader() -> UIAlertController{

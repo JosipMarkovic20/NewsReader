@@ -11,5 +11,5 @@ import Foundation
 struct ExpandableNews{
     var title: String
     var isExpanded: Bool
-    let news: [News]
+    var news: [News]
 }
