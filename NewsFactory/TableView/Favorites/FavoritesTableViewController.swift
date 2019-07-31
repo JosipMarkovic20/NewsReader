@@ -9,17 +9,14 @@
 import UIKit
 import Realm
 import RxSwift
-import RxCocoa
 
 class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    let database = RealmManager()
-    var news = [News]()
     let cellIdentifier = "NewsTableViewCell"
     var favoritesDelegate: FavoritesDelegate?
     var favoriteEdit: (News) -> Void = {news in }
     let disposeBag = DisposeBag()
-    let tableReloadSubject = PublishSubject<Bool>()
+    let viewModel = FavoritesViewModel()
     
     var tableView: UITableView = {
         let tableView = UITableView()
@@ -28,9 +25,16 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     }()
     
     override func viewDidLoad() {
-        loadFavorites()
+        funcToDispose()
         setupUI()
         setupSubscriptions()
+        viewModel.loadFavoritesSubject.onNext(true)
+    }
+    
+    func funcToDispose(){
+        viewModel.addFavorites(subject: viewModel.addNewsSubject).disposed(by: disposeBag)
+        viewModel.loadFavorites(subject: viewModel.loadFavoritesSubject).disposed(by: disposeBag)
+        viewModel.removeFavorites(subject: viewModel.removeNewsSubject).disposed(by: disposeBag)
     }
     
     func setupUI(){
@@ -61,83 +65,61 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return news.count
+        return viewModel.news.count
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let singleNews = viewModel.news[indexPath.row]
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
         cell.favoriteClickedDelegate = self
-        let singleNews = news[indexPath.row]
         cell.configureCell(news: singleNews)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let newsToShow = news[indexPath.row]
+        let newsToShow = viewModel.news[indexPath.row]
         guard let delegate = favoritesDelegate else {return}
         let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: newsToShow, delegate: delegate)
         self.navigationController?.pushViewController(detailsView, animated: false)
     }
     
     func setupSubscriptions(){
-        tableReloadSubject
+        viewModel.tableReloadSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
                 self.tableView.reloadData()
             }).disposed(by: disposeBag)
-    }
-    
-    func loadFavorites(){
-        news.removeAll()
-        database.getObjects()
+        
+        viewModel.tableViewSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .map({[unowned self] (results) -> [News] in
-                let favoriteNewsResult = self.createScreenData(results: results)
-                return favoriteNewsResult
-            })
-            .subscribe(onNext: {[unowned self] (results) in
-                self.news = results
-                self.tableReloadSubject.onNext(true)
+            .subscribe(onNext: {[unowned self] (favoritesTableViewSubjectEnum) in
+                switch favoritesTableViewSubjectEnum {
+                case .rowRemove(let indexPath):
+                    self.tableView.deleteRows(at: indexPath, with: .automatic)
+                case .rowInsert(let indexPath):
+                    self.tableView.insertRows(at: indexPath, with: .automatic)
                 }
-            ).disposed(by: disposeBag)
-    }
-    
-    func createScreenData(results: [RealmNews]) -> [News]{
-        var favoriteNewsResult = [News]()
-        let results = results
-        for favoriteNews in results{
-            let favoriteNewsForArray = News(title: favoriteNews.realmTitle, description: favoriteNews.realmDescription, urlToImage: favoriteNews.realmUrlToImage, author: favoriteNews.realmAuthor, url: favoriteNews.realmUrl, publishedAt: favoriteNews.realmPublishedAt)
-            favoriteNewsForArray.isFavorite = true
-            favoriteNewsResult.append(favoriteNewsForArray)
-        }
-        return favoriteNewsResult
+            }).disposed(by: disposeBag)
     }
     
     func addFavorites(news: News){
-        self.news.append(news)
-        guard let indexOfNews = self.news.firstIndex(where: {$0.title==news.title}) else {return}
-        let newIndexPath: IndexPath = IndexPath(row: indexOfNews, section: 0)
-        self.tableView.insertRows(at: [newIndexPath], with: .automatic)
+        viewModel.addNewsSubject.onNext(news)
     }
     
     func removeFavorites(news: News){
-        guard let indexOfFavorite = self.news.firstIndex(where: {$0.title==news.title}) else {return}
-        self.news.remove(at: indexOfFavorite)
-        let newIndexPath: IndexPath = IndexPath(row: indexOfFavorite, section: 0)
-        self.tableView.deleteRows(at: [newIndexPath], with: .automatic)
+        viewModel.removeNewsSubject.onNext(news)
     }
-    
 }
 
 
 extension FavoritesTableViewController: FavoriteClickDelegate{
     func favoriteClicked(newsTitle: String) {
-        guard let indexOfMainNews = news.firstIndex(where: {$0.title==newsTitle}) else {return}
-        self.favoritesDelegate?.editFavorites(news: news[indexOfMainNews])
+        guard let indexOfMainNews = viewModel.news.firstIndex(where: {$0.title==newsTitle}) else {return}
+        self.favoritesDelegate?.editFavorites(news: viewModel.news[indexOfMainNews])
     }
 }

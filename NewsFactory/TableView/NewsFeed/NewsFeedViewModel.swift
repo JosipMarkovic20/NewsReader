@@ -120,7 +120,7 @@ class NewsFeedViewModel{
             if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
                 data.element.title == news.title
             }){
-                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
+                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 1)
                 self.allNews[1].news[newsEnumerated.offset].isFavorite = false
                 self.favoritesControlSubject.onNext(indexPath)
             }
@@ -149,7 +149,7 @@ class NewsFeedViewModel{
             if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
                 data.element.title == news.title
             }){
-                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
+                let indexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 1)
                 self.allNews[1].news[newsEnumerated.offset].isFavorite = true
                 self.favoritesControlSubject.onNext(indexPath)
             }
