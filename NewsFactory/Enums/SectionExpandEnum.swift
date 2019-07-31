@@ -10,6 +10,6 @@ import Foundation
 
 
 enum SectionExpandEnum {
-    case SectionExpand([IndexPath])
-    case SectionCollapse([IndexPath])
+    case sectionExpand([IndexPath])
+    case sectionCollapse([IndexPath])
 }

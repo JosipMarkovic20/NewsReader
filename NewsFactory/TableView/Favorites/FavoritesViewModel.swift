@@ -61,7 +61,7 @@ class FavoritesViewModel{
                     data.element.title == news.title
                 }) else {return}
                 let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
-                self.tableViewSubject.onNext(FavoritesTableViewSubjectEnum.rowInsert([newIndexPath]))
+                self.tableViewSubject.onNext(.rowInsert([newIndexPath]))
             })
     }
     
@@ -77,7 +77,7 @@ class FavoritesViewModel{
                 }) else {return}
                 self.news.remove(at: newsEnumerated.offset)
                 let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
-                self.tableViewSubject.onNext(FavoritesTableViewSubjectEnum.rowRemove([newIndexPath]))
+                self.tableViewSubject.onNext(.rowRemove([newIndexPath]))
             })
     }
 }

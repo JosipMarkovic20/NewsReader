@@ -119,7 +119,11 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
 
 extension FavoritesTableViewController: FavoriteClickDelegate{
     func favoriteClicked(newsTitle: String) {
-        guard let indexOfMainNews = viewModel.news.firstIndex(where: {$0.title==newsTitle}) else {return}
-        self.favoritesDelegate?.editFavorites(news: viewModel.news[indexOfMainNews])
+        if let indexOfMainNews = viewModel.news.enumerated().first(where: { (data) -> Bool in
+            data.element.title == newsTitle
+        }){
+            self.favoritesDelegate?.editFavorites(news: viewModel.news[indexOfMainNews.offset])
+        }
+        
     }
 }

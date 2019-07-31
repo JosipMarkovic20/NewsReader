@@ -56,8 +56,9 @@ class NewsDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        viewModel.checkForFavorites(subject: viewModel.checkForFavoritesSubject).disposed(by: disposeBag)
         setupSubscriptions()
+        viewModel.checkForFavoritesSubject.onNext(true)
+        viewModel.checkForFavorites(subject: viewModel.checkForFavoritesSubject).disposed(by: disposeBag)
     }
     
     func setDataToViews(news: News){
@@ -76,7 +77,6 @@ class NewsDetailsViewController: UIViewController {
         view.addSubview(newsDescription)
         setupConstraints()
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "star"), style: .plain, target: self, action: #selector(editFavorites))
-        viewModel.checkForFavoritesSubject.onNext(true)
     }
     
     func setupConstraints(){

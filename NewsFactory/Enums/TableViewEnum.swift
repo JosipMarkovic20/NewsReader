@@ -10,8 +10,6 @@ import Foundation
 
 
 enum FavoritesTableViewSubjectEnum{
-    
     case rowRemove([IndexPath])
     case rowInsert([IndexPath])
-    
 }

@@ -29,7 +29,7 @@ class NewsFeedViewModel{
     let favoritesControlSubject = PublishSubject<IndexPath>()
     let toastSubject = PublishSubject<String>()
     let realmAlertSubject = PublishSubject<Bool>()
-    let handleExpandSubject = PublishSubject<UIButton>()
+    let toggleExpandSubject = PublishSubject<UIButton>()
     let newsRefreshSubject = PublishSubject<Bool>()
     let removeFavoritesSubject = PublishSubject<News>()
     let addFavoriteSubject = PublishSubject<News>()
@@ -50,7 +50,7 @@ class NewsFeedViewModel{
         standardUserDefaults.set(currentTime, forKey: "Current time")
     }
     
-    func handleExpanding(button: UIButton){
+    func toggleExpand(button: UIButton){
         let section = button.tag
         
         var indexPaths = [IndexPath]()
@@ -63,9 +63,9 @@ class NewsFeedViewModel{
         allNews[section].isExpanded = !isExpanded
         
         if isExpanded{
-            sectionExpandSubject.onNext(.SectionCollapse(indexPaths))
+            sectionExpandSubject.onNext(.sectionCollapse(indexPaths))
         }else{
-            sectionExpandSubject.onNext(.SectionExpand(indexPaths))
+            sectionExpandSubject.onNext(.sectionExpand(indexPaths))
         }
     }
     
@@ -99,8 +99,10 @@ class NewsFeedViewModel{
     
     func createScreenData(news: [News], realmNews: [RealmNews], title: String) -> ExpandableNews{
         for favoriteNews in realmNews{
-            if let indexOfMainNews = news.firstIndex(where: {$0.title==favoriteNews.realmTitle}){
-                news[indexOfMainNews].isFavorite = true
+            if let indexOfMainNews = news.enumerated().first(where: { (data) -> Bool in
+                data.element.title == favoriteNews.realmTitle
+            }){
+                news[indexOfMainNews.offset].isFavorite = true
             }
         }
         let expandableNews = ExpandableNews(title: title, isExpanded: true, news: news)

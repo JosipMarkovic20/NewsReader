@@ -103,13 +103,13 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = UIColor(red: 0.9686, green: 0.5804, blue: 0, alpha: 1.0)
         button.titleLabel?.font = UIFont(name: "Arial-BoldMT", size: 20)
-        button.addTarget(self, action: #selector(handleExpanding), for: .touchUpInside)
+        button.addTarget(self, action: #selector(toggleExpanding), for: .touchUpInside)
         button.tag = section
         return button
     }
     
-    @objc func handleExpanding(button: UIButton){
-        viewModel.handleExpandSubject.onNext(button)
+    @objc func toggleExpanding(button: UIButton){
+        viewModel.toggleExpandSubject.onNext(button)
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -166,9 +166,9 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (enumCase) in
                 switch enumCase{
-                case .SectionExpand(let indexPath):
+                case .sectionExpand(let indexPath):
                     self.tableView.insertRows(at: indexPath, with: .automatic)
-                case .SectionCollapse(let indexPath):
+                case .sectionCollapse(let indexPath):
                     self.tableView.deleteRows(at: indexPath, with: .automatic)
                 }
             }).disposed(by: disposeBag)
@@ -194,11 +194,11 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 self.showRealmAlert()
             }).disposed(by: disposeBag)
         
-        viewModel.handleExpandSubject
+        viewModel.toggleExpandSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (button) in
-                self.viewModel.handleExpanding(button: button)
+                self.viewModel.toggleExpand(button: button)
             }).disposed(by: disposeBag)
         
         viewModel.newsRefreshSubject
@@ -266,11 +266,15 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
 extension NewsTableViewController: FavoriteClickDelegate{
     
     func favoriteClicked(newsTitle: String) {
-        if let indexOfMainNews = viewModel.allNews[0].news.firstIndex(where: {$0.title==newsTitle}) {
-            favoriteEdit?(viewModel.allNews[0].news[indexOfMainNews])
+        if let indexOfMainNews = viewModel.allNews[0].news.enumerated().first(where: { (data) -> Bool in
+            data.element.title == newsTitle
+        }) {
+            favoriteEdit?(viewModel.allNews[0].news[indexOfMainNews.offset])
         }
-        if let indexOfMainNews = viewModel.allNews[1].news.firstIndex(where: {$0.title==newsTitle}) {
-            favoriteEdit?(viewModel.allNews[1].news[indexOfMainNews])
+        if let indexOfMainNews = viewModel.allNews[1].news.enumerated().first(where: { (data) -> Bool in
+            data.element.title == newsTitle
+        }) {
+            favoriteEdit?(viewModel.allNews[1].news[indexOfMainNews.offset])
         }
     }
 }
