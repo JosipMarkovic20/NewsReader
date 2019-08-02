@@ -16,13 +16,24 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     var favoritesDelegate: FavoritesDelegate?
     var favoriteEdit: (News) -> Void = {news in }
     let disposeBag = DisposeBag()
-    let viewModel = FavoritesViewModel()
+    let viewModel: FavoritesViewModel
+    var detailsDelegate: DetailsDelegate?
     
     var tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
+    
+    
+    init(viewModel: FavoritesViewModel){
+        self.viewModel = viewModel
+        super.init(nibName: nil,bundle: nil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         funcToDispose()
@@ -82,8 +93,7 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let newsToShow = viewModel.news[indexPath.row]
         guard let delegate = favoritesDelegate else {return}
-        let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: newsToShow, delegate: delegate)
-        self.navigationController?.pushViewController(detailsView, animated: false)
+        detailsDelegate?.showDetailedNews(news: newsToShow, delegate: delegate)
     }
     
     func setupSubscriptions(){

@@ -41,6 +41,8 @@ class NewsDetailsViewController: UIViewController {
     var delegate: FavoritesDelegate
     let viewModel: NewsDetailsViewModel
     let disposeBag = DisposeBag()
+    var detailsCoordinatorDelegate: CoordinatorDelegate?
+    weak var coordinator: NewsDetailsCoordinator?
     
     init(news: News, delegate: FavoritesDelegate){
         viewModel = NewsDetailsViewModel(news: news)
@@ -58,6 +60,11 @@ class NewsDetailsViewController: UIViewController {
         setupUI()
         viewModel.checkForFavorites(subject: viewModel.checkForFavoritesSubject).disposed(by: disposeBag)
         setupSubscriptions()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        detailsCoordinatorDelegate?.viewControllerHasFinished()
     }
     
     func setDataToViews(news: News){

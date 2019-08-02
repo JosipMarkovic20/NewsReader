@@ -22,8 +22,9 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     private let refreshControl = UIRefreshControl()
     var favoritesDelegate: FavoritesDelegate?
     var favoriteEdit: ((News) -> Void)?
-    let viewModel = NewsFeedViewModel()
+    let viewModel: NewsFeedViewModel
     let disposeBag = DisposeBag()
+    var detailsDelegate: DetailsDelegate?
     
     
     var tableView: UITableView = {
@@ -31,6 +32,17 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
     }()
+    
+    init(viewModel: NewsFeedViewModel){
+        self.viewModel = viewModel
+        super.init(nibName: nil,bundle: nil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -106,8 +118,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let newsToShow = viewModel.news[indexPath.row]
         guard let delegate = favoritesDelegate else {return}
-        let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: newsToShow, delegate: delegate)
-        self.navigationController?.pushViewController(detailsView, animated: false)
+        detailsDelegate?.showDetailedNews(news: newsToShow, delegate: delegate)
     }
     
     func setupSubscriptions(){

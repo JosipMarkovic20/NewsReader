@@ -12,7 +12,7 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
-    
+    private var appCoordinator: AppCoordinator?
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         setupUiOptions()
@@ -44,13 +44,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func setupUiOptions(){
         self.window = UIWindow()
         
-        self.window?.rootViewController = CustomTabBarController()
+        guard let window = self.window else { return }
         
-        UINavigationBar.appearance().barTintColor = UIColor(red: 0.054, green: 0.25, blue: 1, alpha: 1.0)
-        UINavigationBar.appearance().tintColor = UIColor.white
-        UINavigationBar.appearance().titleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.white]
-        
-        self.window?.makeKeyAndVisible()
+        self.appCoordinator = AppCoordinator(window: window)
+        appCoordinator?.start()
     }
     
 }
