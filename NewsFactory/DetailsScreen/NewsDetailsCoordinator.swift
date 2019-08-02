@@ -13,12 +13,12 @@ import UIKit
 class NewsDetailsCoordinator: Coordinator{
     
     var childCoordinators: [Coordinator] = []
-    let navigationController: UINavigationController
+    let presenter: UINavigationController
     let news: News
     let delegate: FavoritesDelegate
     
-    init(navController: UINavigationController, news: News, delegate: FavoritesDelegate){
-        self.navigationController = navController
+    init(presenter: UINavigationController, news: News, delegate: FavoritesDelegate){
+        self.presenter = presenter
         self.news = news
         self.delegate = delegate
     }
@@ -27,7 +27,7 @@ class NewsDetailsCoordinator: Coordinator{
         childCoordinators.append(self)
         let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: news, delegate: delegate)
         detailsView.coordinator = self
-        self.navigationController.pushViewController(detailsView, animated: false)
+        self.presenter.pushViewController(detailsView, animated: false)
     }
 }
 

@@ -22,13 +22,10 @@ class NewsDetailsViewModel {
     
     func checkForFavorites(subject: PublishSubject<Bool>) -> Disposable{
         
-        return subject.flatMap({ (bool) -> Observable<Bool> in
-            return Observable.just(bool)
-        }).observeOn(MainScheduler.instance)
+        return subject.observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
                 self.favoriteStatusSubject.onNext(bool)
             })
-        
     }
 }

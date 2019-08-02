@@ -13,12 +13,12 @@ import UIKit
 class NewsFeedCoordinator : Coordinator {
     var childCoordinators: [Coordinator] = []
     
-    var navigationController: UINavigationController?
+    var presenter: UINavigationController?
     let viewModel: NewsFeedViewModel
     let viewController: NewsTableViewController
     
-    init(navigationController :UINavigationController) {
-        self.navigationController = navigationController
+    init(presenter :UINavigationController) {
+        self.presenter = presenter
         viewModel = NewsFeedViewModel()
         viewController = NewsTableViewController(viewModel: viewModel)
     }

@@ -39,18 +39,18 @@ class TabBarCoordinator: Coordinator{
     }
     
     func createNewsFeedCoordinator() -> NewsFeedCoordinator{
-        let newsFeedCoordinator = NewsFeedCoordinator(navigationController: presenter)
+        let newsFeedCoordinator = NewsFeedCoordinator(presenter: presenter)
         self.newsFeedController = newsFeedCoordinator.viewController
-        guard let newsFeedController = newsFeedController else { return NewsFeedCoordinator(navigationController: presenter)}
+        guard let newsFeedController = newsFeedController else { return NewsFeedCoordinator(presenter: presenter)}
         newsFeedController.title = "News"
         newsFeedController.tabBarItem.image = UIImage(named: "news_feed_icon")
         return newsFeedCoordinator
     }
     
     func createFavoritesCoordinator() -> FavoritesCoordinator{
-        let favoritesCoordinator = FavoritesCoordinator(navigationController: presenter)
+        let favoritesCoordinator = FavoritesCoordinator(presenter: presenter)
         self.favoritesController = favoritesCoordinator.viewController
-        guard let favoritesController = favoritesController else { return FavoritesCoordinator(navigationController: presenter)}
+        guard let favoritesController = favoritesController else { return FavoritesCoordinator(presenter: presenter)}
         favoritesController.title = "Favorites"
         favoritesController.tabBarItem.image = UIImage(named: "star")
         return favoritesCoordinator
@@ -92,7 +92,7 @@ class TabBarCoordinator: Coordinator{
 extension TabBarCoordinator: FavoritesDelegate, DetailsDelegate{
     
     func showDetailedNews(news: News, delegate: FavoritesDelegate) {
-        let detailsCoordinator = NewsDetailsCoordinator(navController: presenter, news: news, delegate: delegate)
+        let detailsCoordinator = NewsDetailsCoordinator(presenter: presenter, news: news, delegate: delegate)
         detailsCoordinator.start()
     }
     

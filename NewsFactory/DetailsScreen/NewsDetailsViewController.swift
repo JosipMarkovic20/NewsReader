@@ -57,9 +57,9 @@ class NewsDetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupSubscriptions()
         setupUI()
         viewModel.checkForFavorites(subject: viewModel.checkForFavoritesSubject).disposed(by: disposeBag)
-        setupSubscriptions()
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -107,7 +107,7 @@ class NewsDetailsViewController: UIViewController {
     }
     
     func setupSubscriptions(){
-        viewModel.favoriteStatusSubject
+        viewModel.checkForFavoritesSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in

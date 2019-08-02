@@ -12,12 +12,12 @@ import UIKit
 class FavoritesCoordinator : Coordinator {
     var childCoordinators: [Coordinator] = []
     
-    var navigationController: UINavigationController?
+    var presenter: UINavigationController?
     let viewModel: FavoritesViewModel
     let viewController: FavoritesTableViewController
     
-    init(navigationController :UINavigationController?) {
-        self.navigationController = navigationController
+    init(presenter :UINavigationController?) {
+        self.presenter = presenter
         viewModel = FavoritesViewModel()
         viewController = FavoritesTableViewController(viewModel: viewModel)
     }
