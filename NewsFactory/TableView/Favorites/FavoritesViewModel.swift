@@ -51,7 +51,7 @@ class FavoritesViewModel{
     
     func manageFavorites(subject: PublishSubject<News>) -> Disposable{
         return subject.flatMap({ (news) -> Observable<String> in
-            if !news.isFavorite{
+            if news.isFavorite{
                 self.news.append(news)
                 guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
                     data.element.title == news.title

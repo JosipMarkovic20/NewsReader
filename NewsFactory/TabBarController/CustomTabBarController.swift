@@ -26,9 +26,8 @@ class CustomTabBarController: UITabBarController{
         setupControllers()
         setupClosures()
         
-        favoritesView.viewModel.manageFavorites(subject: favoritesView.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
         newsFeedView.viewModel.manageFavorites(subject: newsFeedView.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
-        
+        favoritesView.viewModel.manageFavorites(subject: favoritesView.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
     }
     
     func setupControllers(){
@@ -55,9 +54,8 @@ class CustomTabBarController: UITabBarController{
     }
     
     func favoritesControl(news: News){
-        favoritesView.viewModel.manageFavoritesSubject.onNext(news)
         newsFeedView.viewModel.manageFavoritesSubject.onNext(news)
-        
+        favoritesView.viewModel.manageFavoritesSubject.onNext(news)
     }
 }
 

@@ -105,29 +105,25 @@ class NewsFeedViewModel{
         
         return subject.flatMap({ [unowned self] (news) -> Observable<String> in
             if news.isFavorite{
+                news.isFavorite = false
                 if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
-                    data.element.title == news.title
-                }){
-                    self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: false)
-                }
+                    data.element.title == news.title})
+                {
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: false)}
                 if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
-                    data.element.title == news.title
-                }){
-                    self.reloadRowAt(row: newsEnumerated.offset, section: 1, state: false)
-                }
+                    data.element.title == news.title})
+                {
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 1, state: false)}
                 return self.database.deleteObject(news: news)
             }else{
                 if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
-                    data.element.title == news.title
-                }){
-                    self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: true)
-                }
+                    data.element.title == news.title})
+                {
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: true)}
                 if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
-                    data.element.title == news.title
-                }){
-                    self.reloadRowAt(row: newsEnumerated.offset, section: 1, state: true)
-                }
-                news.isFavorite = true
+                    data.element.title == news.title})
+                {
+                    self.reloadRowAt(row: newsEnumerated.offset, section: 1, state: true)}
                 return self.database.saveObject(news: news)
             }
         })
