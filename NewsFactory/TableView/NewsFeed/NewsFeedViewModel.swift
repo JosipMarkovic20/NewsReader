@@ -20,7 +20,7 @@ class NewsFeedViewModel{
     let alamofire = AlamofireManager()
     let standardUserDefaults = UserDefaults.standard
     let database = RealmManager()
-    let refreshAndLoaderSubject = PublishSubject<Bool>()
+    let refreshAndLoaderSubject = ReplaySubject<Bool>.create(bufferSize: 1)
     var bbcSelected: Bool = true
     let sectionExpandSubject = PublishSubject<SectionExpandEnum>()
     let toastSubject = PublishSubject<String>()
@@ -29,14 +29,14 @@ class NewsFeedViewModel{
     let alertPopUpSubject = PublishSubject<AlertSubjectEnum>()
     let tableViewControlSubject = PublishSubject<NewsFeedTableViewSubjectEnum>()
     let fetchNewsSubject = PublishSubject<DataFetchEnum>()
-    let getNewsDataSubject = PublishSubject<Bool>()
+    let getNewsDataSubject = PublishSubject<DataFetchEnum>()
     var disposeBag = DisposeBag()
     
     
     func getDataToShow(){
         let lastKnownTime = standardUserDefaults.integer(forKey: "Current time")
         if Int(Date().timeIntervalSince1970)-lastKnownTime>300 || self.allNews.isEmpty{
-            getNewsDataSubject.onNext(true)
+            getNewsDataSubject.onNext(.getNews)
         }
     }
     
@@ -64,8 +64,14 @@ class NewsFeedViewModel{
         }
     }
     
-    func collectAndPrepareData(for subject: PublishSubject<Bool>) -> Disposable{
-        return subject.flatMap({[unowned self] (bool) -> Observable<([News], [News], [RealmNews])> in
+    func collectAndPrepareData(for subject: PublishSubject<DataFetchEnum>) -> Disposable{
+        return subject.flatMap({[unowned self] (enumCase) -> Observable<([News], [News], [RealmNews])> in
+            switch enumCase{
+            case .getNews:
+                self.refreshAndLoaderSubject.onNext(true)
+            case .refreshNews:
+                break
+            }
             let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.alamofire.getNewsAlamofireWay(jsonUrlString: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
                 return(bbcNews, ignNews, favNews)
             }
@@ -107,8 +113,7 @@ class NewsFeedViewModel{
             if news.isFavorite{
                 news.isFavorite = false
                 if let newsEnumerated = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
-                    data.element.title == news.title})
-                {
+                    data.element.title == news.title}){
                     self.reloadRowAt(row: newsEnumerated.offset, section: 0, state: false)}
                 if let newsEnumerated = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
                     data.element.title == news.title})

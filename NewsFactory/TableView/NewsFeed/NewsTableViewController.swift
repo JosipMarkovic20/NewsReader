@@ -19,7 +19,8 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     let disposeBag = DisposeBag()
     var favoritesDelegate: FavoritesDelegate?
     var favoriteEdit: ((News) -> Void)?
-    let viewModel = NewsFeedViewModel()
+    let viewModel: NewsFeedViewModel
+    var detailsDelegate: DetailsDelegate?
     
     var tableView: UITableView = {
         let tableView = UITableView()
@@ -27,12 +28,20 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         return tableView
     }()
     
+    init(viewModel: NewsFeedViewModel){
+        self.viewModel = viewModel
+        super.init(nibName: nil,bundle: nil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupSubscriptions()
         setupUI()
         funcToDispose()
-        viewModel.refreshAndLoaderSubject.onNext(true)
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -129,8 +138,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let newsToShow = viewModel.allNews[indexPath.section].news[indexPath.row]
         guard let delegate = favoritesDelegate else {return}
-        let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: newsToShow, delegate: delegate)
-        self.navigationController?.pushViewController(detailsView, animated: false)
+        detailsDelegate?.showDetailedNews(news: newsToShow, delegate: delegate)
     }
     
     func setupSubscriptions(){
@@ -193,7 +201,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                     self.viewModel.getDataToShow()
                 case .refreshNews:
                     print("refresh")
-                    self.viewModel.getNewsDataSubject.onNext(true)
+                    self.viewModel.getNewsDataSubject.onNext(.refreshNews)
                 }
             }).disposed(by: disposeBag)
         
