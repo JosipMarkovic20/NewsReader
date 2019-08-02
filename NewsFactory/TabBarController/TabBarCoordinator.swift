@@ -70,8 +70,7 @@ class TabBarCoordinator: Coordinator{
         
         newsFeedController.favoritesDelegate = self
         favoritesController.favoritesDelegate = self
-        newsFeedController.detailsDelegate = self
-        favoritesController.detailsDelegate = self
+        
     }
     
     func favoritesControl(news: News){
@@ -89,12 +88,7 @@ class TabBarCoordinator: Coordinator{
     }
 }
 
-extension TabBarCoordinator: FavoritesDelegate, DetailsDelegate{
-    
-    func showDetailedNews(news: News, delegate: FavoritesDelegate) {
-        let detailsCoordinator = NewsDetailsCoordinator(presenter: presenter, news: news, delegate: delegate)
-        detailsCoordinator.start()
-    }
+extension TabBarCoordinator: FavoritesDelegate{
     
     func editFavorites(news: News){
         favoritesControl(news: news)

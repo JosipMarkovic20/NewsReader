@@ -20,9 +20,32 @@ class FavoritesCoordinator : Coordinator {
         self.presenter = presenter
         viewModel = FavoritesViewModel()
         viewController = FavoritesTableViewController(viewModel: viewModel)
+        viewController.detailsDelegate = self
     }
     
     func start() {
+        
     }
     
+}
+
+extension FavoritesCoordinator: DetailsDelegate, ParentCoordinatorDelegate, CoordinatorDelegate{
+    
+    func showDetailedNews(news: News, delegate: FavoritesDelegate) {
+        
+        guard let presenter = self.presenter else { return }
+        let detailsCoordinator = NewsDetailsCoordinator(presenter: presenter, news: news, delegate: delegate)
+        self.store(coordinator: detailsCoordinator)
+        detailsCoordinator.viewController.detailsCoordinatorDelegate = self
+        detailsCoordinator.start()
+    }
+    
+    func childHasFinished(coordinator: Coordinator) {
+        free(coordinator: coordinator)
+    }
+    
+    func viewControllerHasFinished() {
+        childCoordinators.removeAll()
+        childHasFinished(coordinator: self)
+    }
 }

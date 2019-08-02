@@ -14,6 +14,6 @@ protocol ParentCoordinatorDelegate {
     func childHasFinished(coordinator: Coordinator)
 }
 
-protocol CoordinatorDelegate {
+protocol CoordinatorDelegate: class {
     func viewControllerHasFinished()
 }

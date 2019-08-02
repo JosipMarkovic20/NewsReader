@@ -41,7 +41,7 @@ class NewsDetailsViewController: UIViewController {
     var delegate: FavoritesDelegate
     let viewModel: NewsDetailsViewModel
     let disposeBag = DisposeBag()
-    var detailsCoordinatorDelegate: CoordinatorDelegate?
+    weak var detailsCoordinatorDelegate: CoordinatorDelegate?
     weak var coordinator: NewsDetailsCoordinator?
     
     init(news: News, delegate: FavoritesDelegate){
@@ -55,6 +55,10 @@ class NewsDetailsViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        print("deinit: \(self)")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupSubscriptions()
@@ -64,7 +68,10 @@ class NewsDetailsViewController: UIViewController {
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        detailsCoordinatorDelegate?.viewControllerHasFinished()
+        if isMovingFromParent{
+            detailsCoordinatorDelegate?.viewControllerHasFinished()
+        }
+        
     }
     
     func setDataToViews(news: News){

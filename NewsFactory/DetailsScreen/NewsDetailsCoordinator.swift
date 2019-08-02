@@ -14,32 +14,18 @@ class NewsDetailsCoordinator: Coordinator{
     
     var childCoordinators: [Coordinator] = []
     let presenter: UINavigationController
-    let news: News
-    let delegate: FavoritesDelegate
+    let viewController: NewsDetailsViewController
     
     init(presenter: UINavigationController, news: News, delegate: FavoritesDelegate){
         self.presenter = presenter
-        self.news = news
-        self.delegate = delegate
+        self.viewController = NewsDetailsViewController(news: news, delegate: delegate)
+    }
+    
+    deinit {
+        print("deinit: \(self)")
     }
     
     func start(){
-        childCoordinators.append(self)
-        let detailsView: NewsDetailsViewController = NewsDetailsViewController(news: news, delegate: delegate)
-        detailsView.coordinator = self
-        self.presenter.pushViewController(detailsView, animated: false)
-    }
-}
-
-extension NewsDetailsCoordinator: ParentCoordinatorDelegate, CoordinatorDelegate{
-    
-    
-    func childHasFinished(coordinator: Coordinator) {
-        free(coordinator: coordinator)
-    }
-    
-    func viewControllerHasFinished() {
-        childCoordinators.removeAll()
-        childHasFinished(coordinator: self)
+        self.presenter.pushViewController(viewController, animated: false)
     }
 }
