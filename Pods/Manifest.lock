@@ -1,6 +1,9 @@
 PODS:
   - Alamofire (4.8.2)
+  - Cuckoo (1.1.1)
   - Kingfisher (5.7.0)
+  - Nimble (8.0.2)
+  - Quick (2.1.0)
   - Realm (3.17.3):
     - Realm/Headers (= 3.17.3)
   - Realm/Headers (3.17.3)
@@ -12,33 +15,47 @@ PODS:
   - RxRelay (5.0.0):
     - RxSwift (~> 5)
   - RxSwift (5.0.0)
+  - RxTest (5.0.0):
+    - RxSwift (~> 5)
 
 DEPENDENCIES:
   - Alamofire
+  - Cuckoo
   - Kingfisher
+  - Nimble
+  - Quick
   - RealmSwift
   - RxCocoa
   - RxSwift
+  - RxTest
 
 SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - Alamofire
+    - Cuckoo
     - Kingfisher
+    - Nimble
+    - Quick
     - Realm
     - RealmSwift
     - RxCocoa
     - RxRelay
     - RxSwift
+    - RxTest
 
 SPEC CHECKSUMS:
   Alamofire: ae5c501addb7afdbb13687d7f2f722c78734c2d3
+  Cuckoo: 6193c50e46403cc9417aa98752671a2a5ae6f3a6
   Kingfisher: c7d211b54f1f30d8060aadab177d52b4349c825b
+  Nimble: 622629381bda1dd5678162f21f1368cec7cbba60
+  Quick: 4be43f6634acfa727dd106bdf3929ce125ffa79d
   Realm: 5a1d9d47bfc101dd597668b1a8af4288a2557f6d
   RealmSwift: b7fdc2d18616621c31df5c7a398a45a2163f8eb0
   RxCocoa: fcf32050ac00d801f34a7f71d5e8e7f23026dcd8
   RxRelay: 4f7409406a51a55cd88483f21ed898c234d60f18
   RxSwift: 8b0671caa829a763bbce7271095859121cbd895f
+  RxTest: 4349afe98f564e0a9bc19063368904622d17d49a
 
-PODFILE CHECKSUM: c721cf790e74f8d9a1c8e3ff704b18b80ba1ec14
+PODFILE CHECKSUM: ae8c7b2df667042f3bfe58b5bd000eed04bb1d7d
 
 COCOAPODS: 1.7.5

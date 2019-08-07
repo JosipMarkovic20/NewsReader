@@ -17,7 +17,6 @@ class NewsFeedViewModel{
     let bbcNewsUrl: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=26a4db9c8a6c41dea9caa401fb634267"
     let ignNewsUrl: String = "https://newsapi.org/v1/articles?source=ign&sortBy=top&apiKey=26a4db9c8a6c41dea9caa401fb634267"
     var allNews = [ExpandableNews]()
-    let alamofire = AlamofireManager()
     let standardUserDefaults = UserDefaults.standard
     let database = RealmManager()
     let refreshAndLoaderSubject = ReplaySubject<Bool>.create(bufferSize: 1)
@@ -31,6 +30,7 @@ class NewsFeedViewModel{
     let fetchNewsSubject = PublishSubject<DataFetchEnum>()
     let getNewsDataSubject = PublishSubject<DataFetchEnum>()
     var disposeBag = DisposeBag()
+    var dataRepository = DataRepository()
     
     
     func getDataToShow(){
@@ -72,7 +72,7 @@ class NewsFeedViewModel{
             case .refreshNews:
                 break
             }
-            let observable = Observable.zip(self.alamofire.getNewsAlamofireWay(jsonUrlString: self.bbcNewsUrl), self.alamofire.getNewsAlamofireWay(jsonUrlString: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
+            let observable = Observable.zip(self.dataRepository.getNews(url: self.bbcNewsUrl), self.dataRepository.getNews(url: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
                 return(bbcNews, ignNews, favNews)
             }
             return observable

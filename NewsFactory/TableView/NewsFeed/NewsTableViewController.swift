@@ -7,7 +7,6 @@
 //
 
 import UIKit
-
 import RxSwift
 
 class NewsTableViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
@@ -110,7 +109,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         let button = UIButton(type: .system)
         button.setTitle(viewModel.allNews[section].title, for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor(red: 0.9686, green: 0.5804, blue: 0, alpha: 1.0)
+        button.backgroundColor = .lightGray
         button.titleLabel?.font = UIFont(name: "Arial-BoldMT", size: 20)
         button.addTarget(self, action: #selector(toggleExpanding), for: .touchUpInside)
         button.tag = section

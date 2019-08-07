@@ -8,27 +8,30 @@
 
 import XCTest
 @testable import NewsFactory
+import Cuckoo
+import Quick
+import Nimble
+import RxSwift
 
-class NewsFactoryTests: XCTestCase {
+class NewsFactoryTests: QuickSpec {
 
-    override func setUp() {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+    
+    override func spec(){
+       
+        let mock = MockDataRepository()
+        guard let bbcPath = Bundle.main.path(forResource: "BBCResponse", ofType: "json") else { return }
+        guard let ignPath = Bundle.main.path(forResource: "IGNResponse", ofType: "json") else { return }
+        
+        
+        describe("Testing network requests"){
+            context("Testing BBC news response"){
+                stub(mock) { stub in
+                   
+                    
+                }
+            }
+            
         }
+        
     }
-
 }
