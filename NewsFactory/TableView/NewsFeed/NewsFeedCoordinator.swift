@@ -18,7 +18,7 @@ class NewsFeedCoordinator : Coordinator {
     
     init(presenter :UINavigationController) {
         self.presenter = presenter
-        viewModel = NewsFeedViewModel()
+        viewModel = NewsFeedViewModel(dataRepository: DataRepository())
         viewController = NewsTableViewController(viewModel: viewModel)
         viewController.detailsDelegate = self
     }

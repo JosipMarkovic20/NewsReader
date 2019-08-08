@@ -12,10 +12,9 @@ import RxSwift
 import Realm
 
 
-class NewsFeedViewModel{
+class NewsFeedViewModel: NewsFeedViewModelProtocol{
+ 
     
-    let bbcNewsUrl: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=26a4db9c8a6c41dea9caa401fb634267"
-    let ignNewsUrl: String = "https://newsapi.org/v1/articles?source=ign&sortBy=top&apiKey=26a4db9c8a6c41dea9caa401fb634267"
     var allNews = [ExpandableNews]()
     let standardUserDefaults = UserDefaults.standard
     let database = RealmManager()
@@ -23,14 +22,21 @@ class NewsFeedViewModel{
     var bbcSelected: Bool = true
     let sectionExpandSubject = PublishSubject<SectionExpandEnum>()
     let toastSubject = PublishSubject<String>()
-    let toggleExpandSubject = PublishSubject<UIButton>()
+    var toggleExpandSubject = PublishSubject<UIButton>()
     let manageFavoritesSubject = PublishSubject<News>()
     let alertPopUpSubject = PublishSubject<AlertSubjectEnum>()
     let tableViewControlSubject = PublishSubject<NewsFeedTableViewSubjectEnum>()
-    let fetchNewsSubject = PublishSubject<DataFetchEnum>()
-    let getNewsDataSubject = PublishSubject<DataFetchEnum>()
-    var disposeBag = DisposeBag()
-    var dataRepository = DataRepository()
+    var fetchNewsSubject = PublishSubject<DataFetchEnum>()
+    var getNewsDataSubject = PublishSubject<DataFetchEnum>()
+    var dataRepository: DataRepositoryProtocol
+    var subscribeScheduler: SchedulerType
+    
+    
+    
+    init (dataRepository: DataRepositoryProtocol, subscribeScheduler: SchedulerType = ConcurrentDispatchQueueScheduler(qos: .background)){
+        self.dataRepository = dataRepository
+        self.subscribeScheduler = subscribeScheduler
+    }
     
     
     func getDataToShow(){
@@ -72,7 +78,7 @@ class NewsFeedViewModel{
             case .refreshNews:
                 break
             }
-            let observable = Observable.zip(self.dataRepository.getNews(url: self.bbcNewsUrl), self.dataRepository.getNews(url: self.ignNewsUrl), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
+            let observable = Observable.zip(self.dataRepository.getBBCNews(), self.dataRepository.getIGNNews(), self.database.getObjects()) { (bbcNews, ignNews, favNews) in
                 return(bbcNews, ignNews, favNews)
             }
             return observable
@@ -148,4 +154,16 @@ class NewsFeedViewModel{
         self.allNews[section].news[row].isFavorite = state
         self.tableViewControlSubject.onNext(.reloadRows([indexPath]))
     }
+}
+
+
+protocol NewsFeedViewModelProtocol {
+    var allNews: [ExpandableNews] {get set}
+    var fetchNewsSubject: PublishSubject<DataFetchEnum>  {get set}
+    var getNewsDataSubject: PublishSubject<DataFetchEnum>  {get set}
+    var toggleExpandSubject: PublishSubject<UIButton>  {get set}
+    
+    func manageFavorites(subject: PublishSubject<News>) -> Disposable
+    func toggleExpand(button: UIButton)
+    func collectAndPrepareData(for subject: PublishSubject<DataFetchEnum>) -> Disposable
 }

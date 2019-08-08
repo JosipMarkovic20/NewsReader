@@ -9,13 +9,23 @@
 import Foundation
 import RxSwift
 
-class DataRepository{
+class DataRepository: DataRepositoryProtocol{
     
-    let alamofire = AlamofireManager()
+    let bbcNewsUrl: String =  "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=26a4db9c8a6c41dea9caa401fb634267"
+    let ignNewsUrl: String = "https://newsapi.org/v1/articles?source=ign&sortBy=top&apiKey=26a4db9c8a6c41dea9caa401fb634267"
+    var alamofire = AlamofireManager()
     
-    func getNews(url: String) -> Observable<[News]>{
-        return alamofire.getNewsAlamofireWay(jsonUrlString: url)
+    func getBBCNews() -> Observable<[News]>{
+        return alamofire.getNewsAlamofireWay(jsonUrlString: bbcNewsUrl)
     }
     
-    
+    func getIGNNews() -> Observable<[News]>{
+        return alamofire.getNewsAlamofireWay(jsonUrlString: ignNewsUrl)
+    }
+}
+
+protocol DataRepositoryProtocol {
+    var alamofire: AlamofireManager { get set}
+    func getBBCNews() -> Observable<[News]>
+    func getIGNNews() -> Observable<[News]>
 }
