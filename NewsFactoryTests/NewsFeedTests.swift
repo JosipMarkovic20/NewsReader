@@ -39,19 +39,21 @@ class NewsFeedTests: QuickSpec {
                     when(mock.getBBCNews()).thenReturn(Observable.just(bbcArticles.articles))
                     when(mock.getIGNNews()).thenReturn(Observable.just(ignArticles.articles))
                 }
+                
+                Cuckoo.stub(mockFavoritesDelegate){ mock in
+                    when(mock.editFavorites(news: any())).thenDoNothing()
+                }
             }
             context("Testing news feed screen"){
                 var loaderObserver: TestableObserver<Bool>!
-                var refreshObserver: TestableObserver<Bool>!
                 
                 beforeEach {
                     testScheduler = TestScheduler(initialClock: 1)
                     viewModel = NewsFeedViewModel(dataRepository: mockDataRepository, subscribeScheduler: testScheduler)
                     viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
+                    viewModel.manageFavorites(subject: viewModel.manageFavoritesSubject).disposed(by: disposeBag)
                     loaderObserver = testScheduler.createObserver(Bool.self)
                     viewModel.refreshAndLoaderSubject.subscribe(loaderObserver).disposed(by: disposeBag)
-                    refreshObserver = testScheduler.createObserver(Bool.self)
-                    viewModel.refreshAndLoaderSubject.subscribe(refreshObserver).disposed(by: disposeBag)
                 }
                 
                 it("Testing AllNews Array"){
@@ -91,7 +93,13 @@ class NewsFeedTests: QuickSpec {
                         expect(element.isFavorite).toNot(beNil())
                     }
                 }
-
+                
+                it("Testing delegates"){
+                    testScheduler.start()
+                    viewModel.getNewsDataSubject.onNext(.getNews)
+                    viewModel.manageFavoritesSubject.onNext(viewModel.allNews[0].news[0])
+                    verify(mockFavoritesDelegate).editFavorites(news: any())
+                }
             }
         }    
     }

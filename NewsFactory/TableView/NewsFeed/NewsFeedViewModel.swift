@@ -23,7 +23,7 @@ class NewsFeedViewModel: NewsFeedViewModelProtocol{
     let sectionExpandSubject = PublishSubject<SectionExpandEnum>()
     let toastSubject = PublishSubject<String>()
     var toggleExpandSubject = PublishSubject<UIButton>()
-    let manageFavoritesSubject = PublishSubject<News>()
+    var manageFavoritesSubject = PublishSubject<News>()
     let alertPopUpSubject = PublishSubject<AlertSubjectEnum>()
     let tableViewControlSubject = PublishSubject<NewsFeedTableViewSubjectEnum>()
     var fetchNewsSubject = PublishSubject<DataFetchEnum>()
@@ -164,6 +164,7 @@ protocol NewsFeedViewModelProtocol {
     var getNewsDataSubject: PublishSubject<DataFetchEnum>  {get set}
     var toggleExpandSubject: PublishSubject<UIButton>  {get set}
     var refreshAndLoaderSubject: ReplaySubject<Bool> {get set}
+    var manageFavoritesSubject: PublishSubject<News> {get set}
     
     func manageFavorites(subject: PublishSubject<News>) -> Disposable
     func toggleExpand(button: UIButton)

@@ -86,7 +86,6 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func funcToDispose(){
         viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
-//        viewModel.manageFavorites(subject: viewModel.manageFavoritesSubject).disposed(by: disposeBag)
     }
     
     // MARK: - Table view data source
