@@ -14,7 +14,7 @@ import Nimble
 import RxSwift
 import RxTest
 
-class NewsFactoryTests: QuickSpec {
+class NewsFeedTests: QuickSpec {
 
     
     override func spec(){
@@ -22,12 +22,13 @@ class NewsFactoryTests: QuickSpec {
         describe("News feed data initialization"){
             var viewModel: NewsFeedViewModelProtocol!
             let disposeBag = DisposeBag()
-            let mock = MockDataRepository()
+            let mockDataRepository = MockDataRepository()
+            let mockFavoritesDelegate = MockFavoritesDelegate()
             var testScheduler: TestScheduler!
             
             beforeSuite {
-                Cuckoo.stub(mock){ mock in
-                    let testBundle = Bundle(for: NewsFactoryTests.self)
+                Cuckoo.stub(mockDataRepository){ mock in
+                    let testBundle = Bundle(for: NewsFeedTests.self)
                     let bbcNewsURL = testBundle.url(forResource: "BBCResponse", withExtension: "json")!
                     let ignNewsURL = testBundle.url(forResource: "IGNResponse", withExtension: "json")!
                     let bbcData = try! Data(contentsOf: bbcNewsURL)
@@ -39,15 +40,18 @@ class NewsFactoryTests: QuickSpec {
                     when(mock.getIGNNews()).thenReturn(Observable.just(ignArticles.articles))
                 }
             }
-            context("Prepare news for download"){
+            context("Testing news feed screen"){
                 var loaderObserver: TestableObserver<Bool>!
+                var refreshObserver: TestableObserver<Bool>!
                 
                 beforeEach {
                     testScheduler = TestScheduler(initialClock: 1)
-                    viewModel = NewsFeedViewModel(dataRepository: mock, subscribeScheduler: testScheduler)
+                    viewModel = NewsFeedViewModel(dataRepository: mockDataRepository, subscribeScheduler: testScheduler)
                     viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
                     loaderObserver = testScheduler.createObserver(Bool.self)
                     viewModel.refreshAndLoaderSubject.subscribe(loaderObserver).disposed(by: disposeBag)
+                    refreshObserver = testScheduler.createObserver(Bool.self)
+                    viewModel.refreshAndLoaderSubject.subscribe(refreshObserver).disposed(by: disposeBag)
                 }
                 
                 it("Testing AllNews Array"){
@@ -66,6 +70,11 @@ class NewsFactoryTests: QuickSpec {
                     expect(loaderObserver.events[1].value.element).to(beFalse())
                 }
                 
+                it("Testing refresh control"){
+                    testScheduler.start()
+                    
+                }
+                
                 it("Testing news content"){
                     testScheduler.start()
                     viewModel.getNewsDataSubject.onNext(.getNews)
@@ -73,13 +82,16 @@ class NewsFactoryTests: QuickSpec {
                         expect(element.title).toNot(beNil())
                         expect(element.description).toNot(beNil())
                         expect(element.urlToImage).toNot(beNil())
+                        expect(element.isFavorite).toNot(beNil())
                     }
                     for element in viewModel.allNews[1].news{
                         expect(element.title).toNot(beNil())
                         expect(element.description).toNot(beNil())
                         expect(element.urlToImage).toNot(beNil())
+                        expect(element.isFavorite).toNot(beNil())
                     }
                 }
+
             }
         }    
     }
