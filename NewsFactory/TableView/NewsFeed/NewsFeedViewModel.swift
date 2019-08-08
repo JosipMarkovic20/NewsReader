@@ -18,7 +18,7 @@ class NewsFeedViewModel: NewsFeedViewModelProtocol{
     var allNews = [ExpandableNews]()
     let standardUserDefaults = UserDefaults.standard
     let database = RealmManager()
-    let refreshAndLoaderSubject = ReplaySubject<Bool>.create(bufferSize: 1)
+    var refreshAndLoaderSubject = ReplaySubject<Bool>.create(bufferSize: 1)
     var bbcSelected: Bool = true
     let sectionExpandSubject = PublishSubject<SectionExpandEnum>()
     let toastSubject = PublishSubject<String>()
@@ -84,14 +84,15 @@ class NewsFeedViewModel: NewsFeedViewModelProtocol{
             return observable
         })
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-            .map({[unowned self] (bbcNews, ignNews, realmNews) -> Void in
+            .subscribeOn(subscribeScheduler)
+            .map({[unowned self] (bbcNews, ignNews, realmNews) -> (ExpandableNews,ExpandableNews) in
                 self.allNews.removeAll()
                 let bbcNewsFeedArray = self.createScreenData(news: bbcNews, realmNews: realmNews, title: "BBC News")
                 let ignNewsFeedArray = self.createScreenData(news: ignNews, realmNews: realmNews, title: "IGN News")
-                self.allNews.append(bbcNewsFeedArray)
-                self.allNews.append(ignNewsFeedArray)
-            }).subscribe(onNext: { [unowned self] (allNewsFeed) in
+                return (bbcNewsFeedArray, ignNewsFeedArray)
+            }).subscribe(onNext: { [unowned self] (bbcNews, ignNews) in
+                self.allNews.append(bbcNews)
+                self.allNews.append(ignNews)
                 self.tableViewControlSubject.onNext(.reloadTable)
                 self.refreshAndLoaderSubject.onNext(false)
                 self.saveCurrentTime()
@@ -139,7 +140,7 @@ class NewsFeedViewModel: NewsFeedViewModelProtocol{
             }
         })
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(subscribeScheduler)
             .subscribe(onNext: {[unowned self] (string) in
                 self.toastSubject.onNext(string)
                 print(string)
@@ -162,6 +163,7 @@ protocol NewsFeedViewModelProtocol {
     var fetchNewsSubject: PublishSubject<DataFetchEnum>  {get set}
     var getNewsDataSubject: PublishSubject<DataFetchEnum>  {get set}
     var toggleExpandSubject: PublishSubject<UIButton>  {get set}
+    var refreshAndLoaderSubject: ReplaySubject<Bool> {get set}
     
     func manageFavorites(subject: PublishSubject<News>) -> Disposable
     func toggleExpand(button: UIButton)

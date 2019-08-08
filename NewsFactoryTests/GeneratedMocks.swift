@@ -1,4 +1,4 @@
-// MARK: - Mocks generated from file: NewsFactory/Networking/DataRepository.swift at 2019-08-08 07:34:46 +0000
+// MARK: - Mocks generated from file: NewsFactory/Networking/DataRepository.swift at 2019-08-08 10:45:50 +0000
 
 //
 //  DataRepository.swift

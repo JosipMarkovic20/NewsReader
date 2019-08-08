@@ -40,19 +40,45 @@ class NewsFactoryTests: QuickSpec {
                 }
             }
             context("Prepare news for download"){
-                    
+                var loaderObserver: TestableObserver<Bool>!
+                
+                beforeEach {
                     testScheduler = TestScheduler(initialClock: 1)
-                    
                     viewModel = NewsFeedViewModel(dataRepository: mock, subscribeScheduler: testScheduler)
-                    
                     viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
+                    loaderObserver = testScheduler.createObserver(Bool.self)
+                    viewModel.refreshAndLoaderSubject.subscribe(loaderObserver).disposed(by: disposeBag)
+                }
                 
-                
-                it("Testing BBC news"){
+                it("Testing AllNews Array"){
                     testScheduler.start()
                     viewModel.getNewsDataSubject.onNext(.getNews)
-                    expect(viewModel.allNews[0].news.count).to(equal(10))
-                    expect(viewModel.allNews[1].news.count).to(equal(10))
+                    expect(viewModel.allNews.count).toEventually(equal(2))
+                    expect(viewModel.allNews[0].news.isEmpty).to(beFalse())
+                    expect(viewModel.allNews[1].news.isEmpty).to(beFalse())
+                }
+                
+                it("Testing loader"){
+                    testScheduler.start()
+                    viewModel.getNewsDataSubject.onNext(.getNews)
+                    expect(loaderObserver.events.count).toEventually(equal(2))
+                    expect(loaderObserver.events[0].value.element).to(beTrue())
+                    expect(loaderObserver.events[1].value.element).to(beFalse())
+                }
+                
+                it("Testing news content"){
+                    testScheduler.start()
+                    viewModel.getNewsDataSubject.onNext(.getNews)
+                    for element in viewModel.allNews[0].news{
+                        expect(element.title).toNot(beNil())
+                        expect(element.description).toNot(beNil())
+                        expect(element.urlToImage).toNot(beNil())
+                    }
+                    for element in viewModel.allNews[1].news{
+                        expect(element.title).toNot(beNil())
+                        expect(element.description).toNot(beNil())
+                        expect(element.urlToImage).toNot(beNil())
+                    }
                 }
             }
         }    
