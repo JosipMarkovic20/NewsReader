@@ -20,7 +20,7 @@ class NewsFeedCoordinator : Coordinator {
         self.presenter = presenter
         viewModel = NewsFeedViewModel(dataRepository: DataRepository())
         viewController = NewsTableViewController(viewModel: viewModel)
-        viewController.detailsDelegate = self
+        viewModel.detailsDelegate = self
     }
     
     func start() {

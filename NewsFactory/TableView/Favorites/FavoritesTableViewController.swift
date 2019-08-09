@@ -83,7 +83,6 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
-        cell.favoriteClickedDelegate = self
         cell.configureCell(news: singleNews)
         return cell
     }

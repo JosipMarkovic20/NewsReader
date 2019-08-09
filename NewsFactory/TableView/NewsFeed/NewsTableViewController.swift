@@ -17,7 +17,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     private let refreshControl = UIRefreshControl()
     let disposeBag = DisposeBag()
     var favoritesDelegate: FavoritesDelegate?
-    var favoriteEdit: ((News) -> Void)?
+    
     let viewModel: NewsFeedViewModel
     var detailsDelegate: DetailsDelegate?
     
@@ -86,6 +86,9 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func funcToDispose(){
         viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
+        guard let delegate = favoritesDelegate else { return }
+        viewModel.openNewsDetails(subject: viewModel.detailsDelegateSubject, favoritesDelegate: delegate).disposed(by: disposeBag)
+        viewModel.favoriteClicked(subject: viewModel.favoriteClickSubject).disposed(by: disposeBag)
     }
     
     // MARK: - Table view data source
@@ -128,15 +131,16 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
-        cell.favoriteClickedDelegate = self
+        cell.favoriteClosure = {[unowned self] newsTitle in
+            self.viewModel.favoriteClickSubject.onNext(newsTitle)
+        }
         cell.configureCell(news: singleNews)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let newsToShow = viewModel.allNews[indexPath.section].news[indexPath.row]
-        guard let delegate = favoritesDelegate else {return}
-        detailsDelegate?.showDetailedNews(news: newsToShow, delegate: delegate)
+        
+        viewModel.detailsDelegateSubject.onNext(indexPath)
     }
     
     func setupSubscriptions(){
@@ -251,18 +255,4 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
 }
 
-extension NewsTableViewController: FavoriteClickDelegate{
-    
-    func favoriteClicked(newsTitle: String) {
-        if let indexOfMainNews = viewModel.allNews[0].news.enumerated().first(where: { (data) -> Bool in
-            data.element.title == newsTitle
-        }) {
-            favoriteEdit?(viewModel.allNews[0].news[indexOfMainNews.offset])
-        }
-        if let indexOfMainNews = viewModel.allNews[1].news.enumerated().first(where: { (data) -> Bool in
-            data.element.title == newsTitle
-        }) {
-            favoriteEdit?(viewModel.allNews[1].news[indexOfMainNews.offset])
-        }
-    }
-}
+

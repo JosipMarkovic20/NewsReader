@@ -13,6 +13,8 @@ import Realm
 
 
 class NewsFeedViewModel: NewsFeedViewModelProtocol{
+    
+    
  
     
     var allNews = [ExpandableNews]()
@@ -30,12 +32,19 @@ class NewsFeedViewModel: NewsFeedViewModelProtocol{
     var getNewsDataSubject = PublishSubject<DataFetchEnum>()
     var dataRepository: DataRepositoryProtocol
     var subscribeScheduler: SchedulerType
+    var detailsDelegateSubject = PublishSubject<IndexPath>()
+    var detailsDelegate: DetailsDelegate?
+    var favoriteEdit: ((News) -> Void)?
+    var favoriteClickSubject = PublishSubject<String>()
+    var favoriteClickDelegate: FavoriteClickDelegate?
+    
     
     
     
     init (dataRepository: DataRepositoryProtocol, subscribeScheduler: SchedulerType = ConcurrentDispatchQueueScheduler(qos: .background)){
         self.dataRepository = dataRepository
         self.subscribeScheduler = subscribeScheduler
+        favoriteClickDelegate = self
     }
     
     
@@ -155,6 +164,29 @@ class NewsFeedViewModel: NewsFeedViewModelProtocol{
         self.allNews[section].news[row].isFavorite = state
         self.tableViewControlSubject.onNext(.reloadRows([indexPath]))
     }
+    
+    
+    func openNewsDetails(subject: PublishSubject<IndexPath>, favoritesDelegate: FavoritesDelegate) -> Disposable{
+        return subject.map({[unowned self] (indexPath) -> News in
+            let newsToShow = self.allNews[indexPath.section].news[indexPath.row]
+            return newsToShow
+        })
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(subscribeScheduler)
+            .subscribe(onNext: {[unowned self] (news) in
+                let delegate = favoritesDelegate
+                guard let delegateDetails = self.detailsDelegate else { return }
+                delegateDetails.showDetailedNews(news: news, delegate: delegate)
+            })
+    }
+    
+    func favoriteClicked(subject: PublishSubject<String>) -> Disposable{
+        return subject
+            .observeOn(MainScheduler.instance)
+            .subscribeOn(subscribeScheduler).subscribe(onNext: {[unowned self] (newsTitle) in
+            self.favoriteClickDelegate?.favoriteClicked(newsTitle: newsTitle)
+        })
+    }
 }
 
 
@@ -165,8 +197,31 @@ protocol NewsFeedViewModelProtocol {
     var toggleExpandSubject: PublishSubject<UIButton>  {get set}
     var refreshAndLoaderSubject: ReplaySubject<Bool> {get set}
     var manageFavoritesSubject: PublishSubject<News> {get set}
+    var detailsDelegateSubject: PublishSubject<IndexPath> {get set}
+    var detailsDelegate: DetailsDelegate? {get set}
+    var favoriteEdit: ((News) -> Void)? {get set}
+    var favoriteClickSubject: PublishSubject<String> {get set}
+    var favoriteClickDelegate: FavoriteClickDelegate? {get set}
     
-    func manageFavorites(subject: PublishSubject<News>) -> Disposable
-    func toggleExpand(button: UIButton)
     func collectAndPrepareData(for subject: PublishSubject<DataFetchEnum>) -> Disposable
+    func openNewsDetails(subject: PublishSubject<IndexPath>, favoritesDelegate: FavoritesDelegate) -> Disposable
+    func favoriteClicked(subject: PublishSubject<String>) -> Disposable
+}
+
+
+
+extension NewsFeedViewModel: FavoriteClickDelegate{
+    
+    func favoriteClicked(newsTitle: String) {
+        if let indexOfMainNews = self.allNews[0].news.enumerated().first(where: { (data) -> Bool in
+            data.element.title == newsTitle
+        }) {
+            favoriteEdit?(self.allNews[0].news[indexOfMainNews.offset])
+        }
+        if let indexOfMainNews = self.allNews[1].news.enumerated().first(where: { (data) -> Bool in
+            data.element.title == newsTitle
+        }) {
+            favoriteEdit?(self.allNews[1].news[indexOfMainNews.offset])
+        }
+    }
 }

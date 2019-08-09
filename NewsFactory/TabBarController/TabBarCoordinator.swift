@@ -25,6 +25,7 @@ class TabBarCoordinator: Coordinator{
     }
     
     func start() {
+        
         setupCoordinators()
         setupClosures()
     }
@@ -41,6 +42,7 @@ class TabBarCoordinator: Coordinator{
         let newsFeedCoordinator = NewsFeedCoordinator(presenter: presenter)
         self.newsFeedController = newsFeedCoordinator.viewController
         guard let newsFeedController = newsFeedController else { return NewsFeedCoordinator(presenter: presenter)}
+        newsFeedController.favoritesDelegate = self
         newsFeedController.viewModel.manageFavorites(subject: newsFeedController.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
         newsFeedController.title = "News"
         newsFeedController.tabBarItem.image = UIImage(named: "news_feed_icon")
@@ -51,6 +53,7 @@ class TabBarCoordinator: Coordinator{
         let favoritesCoordinator = FavoritesCoordinator(presenter: presenter)
         self.favoritesController = favoritesCoordinator.viewController
         guard let favoritesController = favoritesController else { return FavoritesCoordinator(presenter: presenter)}
+        favoritesController.favoritesDelegate = self
         favoritesController.viewModel.manageFavorites(subject: favoritesController.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
         favoritesController.title = "Favorites"
         favoritesController.tabBarItem.image = UIImage(named: "star")
@@ -63,15 +66,16 @@ class TabBarCoordinator: Coordinator{
         guard let newsFeedController = newsFeedController else { return }
         guard let favoritesController = favoritesController else { return }
         
+        
+        
         favoritesController.favoriteEdit = {[unowned self] (news) in
             self.favoritesControl(news: news)        }
         
-        newsFeedController.favoriteEdit = {[unowned self] (news) in
+        newsFeedController.viewModel.favoriteEdit = {[unowned self] (news) in
             self.favoritesControl(news: news)
         }
         
-        newsFeedController.favoritesDelegate = self
-        favoritesController.favoritesDelegate = self
+        
     }
     
     func favoritesControl(news: News){

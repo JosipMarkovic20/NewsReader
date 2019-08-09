@@ -36,8 +36,8 @@ class NewsTableViewCell: UITableViewCell{
         return button
     }()
     
-    var favoriteClickedDelegate: FavoriteClickDelegate?
     var news: News?
+    var favoriteClosure: ((String) -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -76,7 +76,7 @@ class NewsTableViewCell: UITableViewCell{
     
     @objc func editFavorites(){
         guard let news = self.news else { return }
-        favoriteClickedDelegate?.favoriteClicked(newsTitle: news.title)
+        favoriteClosure?(news.title)
     }
     
     func configureCell(news: News){

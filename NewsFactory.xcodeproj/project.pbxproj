@@ -464,6 +464,7 @@
 			inputPaths = (
 				"$(SRCROOT)/NewsFactory/Networking/DataRepository.swift",
 				"$(SRCROOT)/NewsFactory/Delegates/FavoritesDelegate.swift",
+				"$(SRCROOT)/NewsFactory/Delegates/DetailsDelegate.swift",
 			);
 			name = "Generate Mocks";
 			outputFileListPaths = (

@@ -23,7 +23,9 @@ class NewsFeedTests: QuickSpec {
             var viewModel: NewsFeedViewModelProtocol!
             let disposeBag = DisposeBag()
             let mockDataRepository = MockDataRepository()
+            let mockDetailsDelegate = MockDetailsDelegate()
             let mockFavoritesDelegate = MockFavoritesDelegate()
+            let mockFavoriteClickDelegate = MockFavoriteClickDelegate()
             var testScheduler: TestScheduler!
             
             beforeSuite {
@@ -40,8 +42,12 @@ class NewsFeedTests: QuickSpec {
                     when(mock.getIGNNews()).thenReturn(Observable.just(ignArticles.articles))
                 }
                 
-                Cuckoo.stub(mockFavoritesDelegate){ mock in
-                    when(mock.editFavorites(news: any())).thenDoNothing()
+                Cuckoo.stub(mockDetailsDelegate){mock in
+                    when(mock.showDetailedNews(news: any(), delegate: any())).thenDoNothing()
+                }
+                
+                Cuckoo.stub(mockFavoriteClickDelegate){mock in
+                    when(mock.favoriteClicked(newsTitle: any())).thenDoNothing()
                 }
             }
             context("Testing news feed screen"){
@@ -51,9 +57,10 @@ class NewsFeedTests: QuickSpec {
                     testScheduler = TestScheduler(initialClock: 1)
                     viewModel = NewsFeedViewModel(dataRepository: mockDataRepository, subscribeScheduler: testScheduler)
                     viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
-                    viewModel.manageFavorites(subject: viewModel.manageFavoritesSubject).disposed(by: disposeBag)
                     loaderObserver = testScheduler.createObserver(Bool.self)
                     viewModel.refreshAndLoaderSubject.subscribe(loaderObserver).disposed(by: disposeBag)
+                    viewModel.openNewsDetails(subject: viewModel.detailsDelegateSubject, favoritesDelegate: mockFavoritesDelegate).disposed(by: disposeBag)
+                    viewModel.favoriteClicked(subject: viewModel.favoriteClickSubject).disposed(by: disposeBag)
                 }
                 
                 it("Testing AllNews Array"){
@@ -72,10 +79,6 @@ class NewsFeedTests: QuickSpec {
                     expect(loaderObserver.events[1].value.element).to(beFalse())
                 }
                 
-                it("Testing refresh control"){
-                    testScheduler.start()
-                    
-                }
                 
                 it("Testing news content"){
                     testScheduler.start()
@@ -94,11 +97,20 @@ class NewsFeedTests: QuickSpec {
                     }
                 }
                 
-                it("Testing delegates"){
+                it("Testing details delegate"){
                     testScheduler.start()
                     viewModel.getNewsDataSubject.onNext(.getNews)
-                    viewModel.manageFavoritesSubject.onNext(viewModel.allNews[0].news[0])
-                    verify(mockFavoritesDelegate).editFavorites(news: any())
+                    viewModel.detailsDelegate = mockDetailsDelegate
+                    viewModel.detailsDelegateSubject.onNext(IndexPath(row: 0, section: 0))
+                    verify(mockDetailsDelegate).showDetailedNews(news: any(), delegate: any())
+                }
+                
+                it("Testing favorites delegate"){
+                    testScheduler.start()
+                    viewModel.getNewsDataSubject.onNext(.getNews)
+                    viewModel.favoriteClickDelegate = mockFavoriteClickDelegate
+                    viewModel.favoriteClickSubject.onNext("string")
+                    verify(mockFavoriteClickDelegate).favoriteClicked(newsTitle: any())
                 }
             }
         }    

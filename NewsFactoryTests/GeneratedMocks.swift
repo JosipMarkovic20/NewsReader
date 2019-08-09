@@ -1,4 +1,109 @@
-// MARK: - Mocks generated from file: NewsFactory/Delegates/FavoritesDelegate.swift at 2019-08-08 12:14:20 +0000
+// MARK: - Mocks generated from file: NewsFactory/Delegates/DetailsDelegate.swift at 2019-08-09 08:19:48 +0000
+
+//
+//  DetailsDelegate.swift
+//  NewsFactory
+//
+//  Created by Josip Marković on 02/08/2019.
+//  Copyright © 2019 Josip Marković. All rights reserved.
+
+import Cuckoo
+@testable import NewsFactory
+
+import Foundation
+
+
+ class MockDetailsDelegate: DetailsDelegate, Cuckoo.ProtocolMock {
+    
+     typealias MocksType = DetailsDelegate
+    
+     typealias Stubbing = __StubbingProxy_DetailsDelegate
+     typealias Verification = __VerificationProxy_DetailsDelegate
+
+     let cuckoo_manager = Cuckoo.MockManager.preconfiguredManager ?? Cuckoo.MockManager(hasParent: false)
+
+    
+    private var __defaultImplStub: DetailsDelegate?
+
+     func enableDefaultImplementation(_ stub: DetailsDelegate) {
+        __defaultImplStub = stub
+        cuckoo_manager.enableDefaultStubImplementation()
+    }
+    
+
+    
+
+    
+
+    
+    
+    
+     func showDetailedNews(news: News, delegate: FavoritesDelegate)  {
+        
+    return cuckoo_manager.call("showDetailedNews(news: News, delegate: FavoritesDelegate)",
+            parameters: (news, delegate),
+            escapingParameters: (news, delegate),
+            superclassCall:
+                
+                Cuckoo.MockManager.crashOnProtocolSuperclassCall()
+                ,
+            defaultCall: __defaultImplStub!.showDetailedNews(news: news, delegate: delegate))
+        
+    }
+    
+
+	 struct __StubbingProxy_DetailsDelegate: Cuckoo.StubbingProxy {
+	    private let cuckoo_manager: Cuckoo.MockManager
+	
+	     init(manager: Cuckoo.MockManager) {
+	        self.cuckoo_manager = manager
+	    }
+	    
+	    
+	    func showDetailedNews<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable>(news: M1, delegate: M2) -> Cuckoo.ProtocolStubNoReturnFunction<(News, FavoritesDelegate)> where M1.MatchedType == News, M2.MatchedType == FavoritesDelegate {
+	        let matchers: [Cuckoo.ParameterMatcher<(News, FavoritesDelegate)>] = [wrap(matchable: news) { $0.0 }, wrap(matchable: delegate) { $0.1 }]
+	        return .init(stub: cuckoo_manager.createStub(for: MockDetailsDelegate.self, method: "showDetailedNews(news: News, delegate: FavoritesDelegate)", parameterMatchers: matchers))
+	    }
+	    
+	}
+
+	 struct __VerificationProxy_DetailsDelegate: Cuckoo.VerificationProxy {
+	    private let cuckoo_manager: Cuckoo.MockManager
+	    private let callMatcher: Cuckoo.CallMatcher
+	    private let sourceLocation: Cuckoo.SourceLocation
+	
+	     init(manager: Cuckoo.MockManager, callMatcher: Cuckoo.CallMatcher, sourceLocation: Cuckoo.SourceLocation) {
+	        self.cuckoo_manager = manager
+	        self.callMatcher = callMatcher
+	        self.sourceLocation = sourceLocation
+	    }
+	
+	    
+	
+	    
+	    @discardableResult
+	    func showDetailedNews<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable>(news: M1, delegate: M2) -> Cuckoo.__DoNotUse<(News, FavoritesDelegate), Void> where M1.MatchedType == News, M2.MatchedType == FavoritesDelegate {
+	        let matchers: [Cuckoo.ParameterMatcher<(News, FavoritesDelegate)>] = [wrap(matchable: news) { $0.0 }, wrap(matchable: delegate) { $0.1 }]
+	        return cuckoo_manager.verify("showDetailedNews(news: News, delegate: FavoritesDelegate)", callMatcher: callMatcher, parameterMatchers: matchers, sourceLocation: sourceLocation)
+	    }
+	    
+	}
+}
+
+ class DetailsDelegateStub: DetailsDelegate {
+    
+
+    
+
+    
+     func showDetailedNews(news: News, delegate: FavoritesDelegate)   {
+        return DefaultValueRegistry.defaultValue(for: (Void).self)
+    }
+    
+}
+
+
+// MARK: - Mocks generated from file: NewsFactory/Delegates/FavoritesDelegate.swift at 2019-08-09 08:19:48 +0000
 
 //
 //  FavoritesDelegate.swift
@@ -194,7 +299,7 @@ import Foundation
 }
 
 
-// MARK: - Mocks generated from file: NewsFactory/Networking/DataRepository.swift at 2019-08-08 12:14:20 +0000
+// MARK: - Mocks generated from file: NewsFactory/Networking/DataRepository.swift at 2019-08-09 08:19:48 +0000
 
 //
 //  DataRepository.swift
