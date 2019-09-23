@@ -42,8 +42,7 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     func funcToDispose(){
-        viewModel.loadFavorites(subject: viewModel.loadFavoritesSubject).disposed(by: disposeBag)
-//        viewModel.manageFavorites(subject: viewModel.manageFavoritesSubject).disposed(by: disposeBag)   
+        viewModel.loadFavorites(subject: viewModel.loadFavoritesSubject).disposed(by: disposeBag) 
     }
     
     func setupUI(){

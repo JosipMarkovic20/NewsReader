@@ -40,10 +40,9 @@ class TabBarCoordinator: Coordinator{
     
     func createNewsFeedCoordinator() -> NewsFeedCoordinator{
         let newsFeedCoordinator = NewsFeedCoordinator(presenter: presenter)
+        newsFeedCoordinator.viewModel.favoritesDelegate = self
         self.newsFeedController = newsFeedCoordinator.viewController
         guard let newsFeedController = newsFeedController else { return NewsFeedCoordinator(presenter: presenter)}
-        newsFeedController.favoritesDelegate = self
-        newsFeedController.viewModel.manageFavorites(subject: newsFeedController.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
         newsFeedController.title = "News"
         newsFeedController.tabBarItem.image = UIImage(named: "news_feed_icon")
         return newsFeedCoordinator
@@ -71,7 +70,7 @@ class TabBarCoordinator: Coordinator{
         favoritesController.favoriteEdit = {[unowned self] (news) in
             self.favoritesControl(news: news)        }
         
-        newsFeedController.viewModel.favoriteEdit = {[unowned self] (news) in
+        newsFeedController.viewModel.input?.favoriteEdit = {[unowned self] (news) in
             self.favoritesControl(news: news)
         }
         
@@ -82,7 +81,7 @@ class TabBarCoordinator: Coordinator{
         guard let newsFeedController = newsFeedController else { return }
         guard let favoritesController = favoritesController else { return }
         
-        newsFeedController.viewModel.manageFavoritesSubject.onNext(news)
+        newsFeedController.viewModel.input?.manageFavoritesSubject.onNext(news)
         favoritesController.viewModel.manageFavoritesSubject.onNext(news)
     }
    

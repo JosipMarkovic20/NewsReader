@@ -20,6 +20,8 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     let viewModel: NewsFeedViewModel
     var detailsDelegate: DetailsDelegate?
+    let output: NewsFeedViewModel.Output
+    let input: NewsFeedViewModel.Input
     
     var tableView: UITableView = {
         let tableView = UITableView()
@@ -29,6 +31,8 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     init(viewModel: NewsFeedViewModel){
         self.viewModel = viewModel
+        self.input = NewsFeedViewModel.Input(toggleExpandSubject: PublishSubject(), fetchNewsSubject: PublishSubject(), getNewsDataSubject: PublishSubject(), favoriteEdit: {_ in }, favoriteClickSubject: PublishSubject(), detailsDelegateSubject: PublishSubject(), manageFavoritesSubject: PublishSubject())
+        self.output = viewModel.transform(input: self.input)
         super.init(nibName: nil,bundle: nil)
     }
     
@@ -40,11 +44,10 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         super.viewDidLoad()
         setupSubscriptions()
         setupUI()
-        funcToDispose()
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        viewModel.fetchNewsSubject.onNext(.getNews)
+        viewModel.input?.fetchNewsSubject.onNext(.getNews)
     }
     
     func setupUI(){
@@ -81,26 +84,19 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     @objc func refreshNews(){
-        viewModel.fetchNewsSubject.onNext(.refreshNews)
+        viewModel.input?.fetchNewsSubject.onNext(.refreshNews)
     }
-    
-    func funcToDispose(){
-        viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
-        guard let delegate = favoritesDelegate else { return }
-        viewModel.openNewsDetails(subject: viewModel.detailsDelegateSubject, favoritesDelegate: delegate).disposed(by: disposeBag)
-        viewModel.favoriteClicked(subject: viewModel.favoriteClickSubject).disposed(by: disposeBag)
-    }
-    
+ 
     // MARK: - Table view data source
     func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return viewModel.allNews.count
+        return (viewModel.output?.allNews.count)!
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        if viewModel.allNews[section].isExpanded{
-            return viewModel.allNews[section].news.count
+        if (viewModel.output?.allNews[section].isExpanded)!{
+            return (viewModel.output?.allNews[section].news.count)!
             
         }
         return 0
@@ -109,7 +105,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let button = UIButton(type: .system)
-        button.setTitle(viewModel.allNews[section].title, for: .normal)
+        button.setTitle(viewModel.output?.allNews[section].title, for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.backgroundColor = .lightGray
         button.titleLabel?.font = UIFont(name: "Arial-BoldMT", size: 20)
@@ -119,7 +115,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     @objc func toggleExpanding(button: UIButton){
-        viewModel.toggleExpandSubject.onNext(button)
+        viewModel.input?.toggleExpandSubject.onNext(button)
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -127,12 +123,12 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let singleNews = viewModel.allNews[indexPath.section].news[indexPath.row]
+        let singleNews = (viewModel.output?.allNews[indexPath.section].news[indexPath.row])!
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
         cell.favoriteClosure = {[unowned self] newsTitle in
-            self.viewModel.favoriteClickSubject.onNext(newsTitle)
+            self.viewModel.input?.favoriteClickSubject.onNext(newsTitle)
         }
         cell.configureCell(news: singleNews)
         return cell
@@ -140,14 +136,14 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        viewModel.detailsDelegateSubject.onNext(indexPath)
+        viewModel.input?.detailsDelegateSubject.onNext(indexPath)
     }
     
     func setupSubscriptions(){
         
-        viewModel.refreshAndLoaderSubject
+        viewModel.output?.refreshAndLoaderSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
                 if bool{
                     self.loader = self.showLoader()
@@ -157,9 +153,9 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }).disposed(by: disposeBag)
         
-        viewModel.sectionExpandSubject
+        viewModel.output?.sectionExpandSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (enumCase) in
                 switch enumCase{
                 case .sectionExpand(let indexPath):
@@ -169,16 +165,16 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }).disposed(by: disposeBag)
         
-        viewModel.toggleExpandSubject
+        viewModel.input?.toggleExpandSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (button) in
                 self.viewModel.toggleExpand(button: button)
             }).disposed(by: disposeBag)
         
-        viewModel.tableViewControlSubject
+        viewModel.output?.tableViewControlSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: { (enumCase) in
                 switch enumCase{
                 case .reloadRows(let indexPath):
@@ -188,29 +184,29 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
                 }
             }).disposed(by: disposeBag)
         
-        viewModel.toastSubject
+        viewModel.output?.toastSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (string) in
                 self.showToast(controller: self, message: string, seconds: 1)
             }).disposed(by: disposeBag)
         
-        viewModel.fetchNewsSubject
+        viewModel.input?.fetchNewsSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: { (enumCase) in
                 switch enumCase{
                 case .getNews:
                     self.viewModel.getDataToShow()
                 case .refreshNews:
                     print("refresh")
-                    self.viewModel.getNewsDataSubject.onNext(.refreshNews)
+                    self.viewModel.input?.getNewsDataSubject.onNext(.refreshNews)
                 }
             }).disposed(by: disposeBag)
         
-        viewModel.alertPopUpSubject
+        viewModel.output?.alertPopUpSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(viewModel.subscribeScheduler)
+            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: { (enumCase) in
                 self.showAlert(alertEnumCase: enumCase)
             }).disposed(by: disposeBag)

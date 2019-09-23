@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import RxSwift
 
 class NewsFeedCoordinator : Coordinator {
     var childCoordinators: [Coordinator] = []
@@ -18,7 +19,7 @@ class NewsFeedCoordinator : Coordinator {
     
     init(presenter :UINavigationController) {
         self.presenter = presenter
-        viewModel = NewsFeedViewModel(dataRepository: DataRepository())
+        viewModel = NewsFeedViewModel(dependencies: NewsFeedViewModel.Dependencies(standardUserDefaults: UserDefaults.standard, database: RealmManager(), dataRepository: DataRepository(), subscribeScheduler: ConcurrentDispatchQueueScheduler(qos: .background)))
         viewController = NewsTableViewController(viewModel: viewModel)
         viewModel.detailsDelegate = self
     }

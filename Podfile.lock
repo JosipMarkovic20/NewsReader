@@ -1,14 +1,16 @@
 PODS:
-  - Alamofire (4.8.2)
-  - Cuckoo (1.1.1)
-  - Kingfisher (5.7.0)
-  - Nimble (8.0.2)
-  - Quick (2.1.0)
-  - Realm (3.17.3):
-    - Realm/Headers (= 3.17.3)
-  - Realm/Headers (3.17.3)
-  - RealmSwift (3.17.3):
-    - Realm (= 3.17.3)
+  - Alamofire (4.9.0)
+  - Cuckoo (1.2.0):
+    - Cuckoo/Swift (= 1.2.0)
+  - Cuckoo/Swift (1.2.0)
+  - Kingfisher (5.7.1)
+  - Nimble (8.0.4)
+  - Quick (2.2.0)
+  - Realm (3.18.0):
+    - Realm/Headers (= 3.18.0)
+  - Realm/Headers (3.18.0)
+  - RealmSwift (3.18.0):
+    - Realm (= 3.18.0)
   - RxCocoa (5.0.0):
     - RxRelay (~> 5)
     - RxSwift (~> 5)
@@ -44,13 +46,13 @@ SPEC REPOS:
     - RxTest
 
 SPEC CHECKSUMS:
-  Alamofire: ae5c501addb7afdbb13687d7f2f722c78734c2d3
-  Cuckoo: 6193c50e46403cc9417aa98752671a2a5ae6f3a6
-  Kingfisher: c7d211b54f1f30d8060aadab177d52b4349c825b
-  Nimble: 622629381bda1dd5678162f21f1368cec7cbba60
-  Quick: 4be43f6634acfa727dd106bdf3929ce125ffa79d
-  Realm: 5a1d9d47bfc101dd597668b1a8af4288a2557f6d
-  RealmSwift: b7fdc2d18616621c31df5c7a398a45a2163f8eb0
+  Alamofire: afc3e7c6db61476cb45cdd23fed06bad03bbc321
+  Cuckoo: f5f4e7c308c512cc2dedbdce23f5dc6985cb5173
+  Kingfisher: 176d377ad339113c99ad4980cbae687f807e20fe
+  Nimble: 18d5360282923225d62b09d781f63abc1a0111fc
+  Quick: 7fb19e13be07b5dfb3b90d4f9824c855a11af40e
+  Realm: 7b3d04740facf45e958a514b466a32b04f1113d6
+  RealmSwift: c817b5f374668cf08f649afb05f55d92a787649c
   RxCocoa: fcf32050ac00d801f34a7f71d5e8e7f23026dcd8
   RxRelay: 4f7409406a51a55cd88483f21ed898c234d60f18
   RxSwift: 8b0671caa829a763bbce7271095859121cbd895f

@@ -28,7 +28,8 @@ We are still missing support for some important features like:
 
 - [x] inheritance (grandparent methods)
 - [x] generics
-- [x] simple type inference for instance variables (you need to write it explicitly, otherwise it will be replaced with `__UnknownType`)  
+- [x] simple type inference for instance variables (works with initializers, `as TYPE` notation, and can be overridden by specifying type explicitly)
+- [x] Objective-C support utilizing OCMock
 
 ## What will not be supported
 Due to the limitations mentioned above, none of the things that can't be overridden can't be supported. This includes:
@@ -277,6 +278,8 @@ These basic values are extended to conform to `Matchable`:
 - `UInt32`
 - `UInt64`
 
+Matchers for `Array`, `Dictionary`, and `Set` are automatically synthesized as long as the type of the element conforms to `Matchable`.
+
 #### B) Custom matchers
 If Cuckoo doesn't know the type you are trying to compare, you have to write your own method `equal(to:)` using a `ParameterMatcher`. Add this method to your test file:
 
@@ -328,6 +331,8 @@ anyThrowingClosure()
 /// Returns a matcher matching any non nil value.
 notNil()
 ```
+
+Cuckoo also provides plenty of convenience matchers for sequences and dictionaries, allowing you to check if a sequence is a superset of a certain sequence, contains at least one of its elements, or is completely disjunct from it.
 
 `Matchable` can be chained with methods `or` and `and` like so:
 
@@ -474,6 +479,38 @@ Prints the version of this generator.
 Display general or command-specific help.
 
 After the `help` command you can specify the name of another command for displaying command-specific information.
+
+## Objective-C Support
+Cuckoo subspec `Cuckoo/OCMock` brings support for mocking Objective-C classes and protocols.
+
+Example usage:
+```
+let tableView = UITableView()
+// stubbing the class is very similar to stubbing with Cuckoo
+let mock = objcStub(for: UITableViewController.self) { stubber, mock in
+  stubber.when(mock.numberOfSections(in: tableView)).thenReturn(1)
+  stubber.when(mock.tableView(tableView, accessoryButtonTappedForRowWith: IndexPath(row: 14, section: 2))).then { args in
+    // `args` is [Any] of the arguments passed and the closure needs to cast them manually
+    let (tableView, indexPath) = (args[0] as! UITableView, args[1] as! IndexPath)
+    print(tableView, indexPath)
+  }
+}
+
+// calling stays the same
+XCTAssertEqual(mock.numberOfSections(in: tableView), 1)
+mock.tableView(tableView, accessoryButtonTappedForRowWith: IndexPath(row: 14, section: 2))
+
+// `objcVerify` is used to verify the interaction with the methods/variables
+objcVerify(mock.numberOfSections(in: tableView))
+objcVerify(mock.tableView(tableView, accessoryButtonTappedForRowWith: IndexPath(row: 14, section: 2)))
+```
+
+Detailed usage is available in Cuckoo tests along with DOs and DON'Ts of this Swift-ObjC bridge.
+
+So far, only CocoaPods is supported. To install, simply add this line to your `Podfile`:
+```
+pod 'Cuckoo/OCMock'
+```
 
 ## Contribute
 Cuckoo is open for everyone and we'd like you to help us make the best Swift mocking library. For Cuckoo development, follow these steps:
