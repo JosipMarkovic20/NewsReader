@@ -141,6 +141,10 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func setupSubscriptions(){
         
+        for disposable in viewModel.disposables{
+            disposable.disposed(by: disposeBag)
+        }
+        
         viewModel.output?.refreshAndLoaderSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))

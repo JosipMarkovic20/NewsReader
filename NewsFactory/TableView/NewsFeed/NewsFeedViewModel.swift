@@ -49,6 +49,7 @@ class NewsFeedViewModel: ViewModelType{
     public var input: Input?
     public var output: Output?
     var favoritesDelegate: FavoritesDelegate?
+    var disposables: [Disposable] = []
     
 
     init (dependencies: Dependencies){
@@ -58,7 +59,6 @@ class NewsFeedViewModel: ViewModelType{
     
     func transform(input: Input) -> Output {
         
-        var disposables: [Disposable] = []
         disposables.append(collectAndPrepareData(for: input.getNewsDataSubject))
         disposables.append(manageFavorites(subject: input.manageFavoritesSubject))
         disposables.append(openNewsDetails(subject: input.detailsDelegateSubject))
