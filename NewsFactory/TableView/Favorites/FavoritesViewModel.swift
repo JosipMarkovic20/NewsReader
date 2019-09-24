@@ -10,19 +10,47 @@ import Foundation
 import Realm
 import RxSwift
 
-class FavoritesViewModel{
+class FavoritesViewModel: ViewModelType{
     
-    let tableReloadSubject = PublishSubject<Bool>()
-    let database = RealmManager()
-    var news = [News]()
-    let loadFavoritesSubject = PublishSubject<Bool>()
-    let tableViewSubject = PublishSubject<FavoritesTableViewSubjectEnum>()
-    let manageFavoritesSubject = PublishSubject<News>()
+    struct Input{
+        let loadFavoritesSubject: PublishSubject<Bool>
+        let manageFavoritesSubject: PublishSubject<News>
+    }
+    
+    struct Output{
+        let tableReloadSubject: PublishSubject<Bool>
+        var news: [News]
+        let tableViewSubject: PublishSubject<FavoritesTableViewSubjectEnum>
+    }
+    
+    struct Dependencies{
+        let database: RealmManager
+    }
+    
+    private let dependencies: Dependencies
+    public var input: Input?
+    public var output: Output?
+    var disposables: [Disposable] = []
+    
+    init(dependencies: Dependencies){
+        self.dependencies = dependencies
+    }
+    
+    
+    func transform(input: FavoritesViewModel.Input) -> FavoritesViewModel.Output {
+        disposables.append(loadFavorites(subject: input.loadFavoritesSubject))
+        disposables.append(manageFavorites(subject: input.manageFavoritesSubject))
+        
+        let output = Output(tableReloadSubject: PublishSubject(), news: [], tableViewSubject: PublishSubject())
+        self.input = input
+        self.output = output
+        return output
+    }
     
     func loadFavorites(subject: PublishSubject<Bool>) -> Disposable{
-        news.removeAll()
+        output?.news.removeAll()
         return subject.flatMap({[unowned self] (bool) -> Observable<[RealmNews]> in
-            self.database.getObjects()
+            self.dependencies.database.getObjects()
         })
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
@@ -31,8 +59,8 @@ class FavoritesViewModel{
                 return favoriteNewsResult
             })
             .subscribe(onNext: {[unowned self] (results) in
-                self.news = results
-                self.tableReloadSubject.onNext(true)
+                self.output?.news = results
+                self.output?.tableReloadSubject.onNext(true)
                 }
         )
     }
@@ -52,20 +80,20 @@ class FavoritesViewModel{
     func manageFavorites(subject: PublishSubject<News>) -> Disposable{
         return subject.flatMap({ (news) -> Observable<String> in
             if news.isFavorite{
-                self.news.append(news)
-                guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
+                self.output?.news.append(news)
+                guard let newsEnumerated = self.output?.news.enumerated().first(where: { (data) -> Bool in
                     data.element.title == news.title
                 }) else {return Observable.just("Object not found!")}
                 let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
-                self.tableViewSubject.onNext(.rowInsert([newIndexPath]))
+                self.output?.tableViewSubject.onNext(.rowInsert([newIndexPath]))
                 return Observable.just("Favorite added to favorites screen")
             }else{
-                guard let newsEnumerated = self.news.enumerated().first(where: { (data) -> Bool in
+                guard let newsEnumerated = self.output?.news.enumerated().first(where: { (data) -> Bool in
                     data.element.title == news.title
                 }) else {return Observable.just("Object not found")}
-                self.news.remove(at: newsEnumerated.offset)
+                self.output?.news.remove(at: newsEnumerated.offset)
                 let newIndexPath: IndexPath = IndexPath(row: newsEnumerated.offset, section: 0)
-                self.tableViewSubject.onNext(.rowRemove([newIndexPath]))
+                self.output?.tableViewSubject.onNext(.rowRemove([newIndexPath]))
                 return Observable.just("Favorite removed from favorites screen")
             }
         })

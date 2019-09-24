@@ -18,7 +18,7 @@ class FavoritesCoordinator : Coordinator {
     
     init(presenter :UINavigationController?) {
         self.presenter = presenter
-        viewModel = FavoritesViewModel()
+        viewModel = FavoritesViewModel(dependencies: FavoritesViewModel.Dependencies(database: RealmManager()))
         viewController = FavoritesTableViewController(viewModel: viewModel)
         viewController.detailsDelegate = self
     }

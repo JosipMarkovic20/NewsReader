@@ -32,7 +32,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
     init(viewModel: NewsFeedViewModel){
         self.viewModel = viewModel
         self.input = NewsFeedViewModel.Input(toggleExpandSubject: PublishSubject(), fetchNewsSubject: PublishSubject(), getNewsDataSubject: PublishSubject(), favoriteEdit: {_ in }, favoriteClickSubject: PublishSubject(), detailsDelegateSubject: PublishSubject(), manageFavoritesSubject: PublishSubject())
-        self.output = viewModel.transform(input: self.input)
+        self.output = viewModel.transform(input: input)
         super.init(nibName: nil,bundle: nil)
     }
     

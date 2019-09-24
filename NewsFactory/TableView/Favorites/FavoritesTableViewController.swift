@@ -18,6 +18,8 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     let disposeBag = DisposeBag()
     let viewModel: FavoritesViewModel
     var detailsDelegate: DetailsDelegate?
+    let input: FavoritesViewModel.Input
+    let output: FavoritesViewModel.Output
     
     var tableView: UITableView = {
         let tableView = UITableView()
@@ -27,6 +29,8 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     
     init(viewModel: FavoritesViewModel){
         self.viewModel = viewModel
+        self.input = FavoritesViewModel.Input(loadFavoritesSubject: PublishSubject(), manageFavoritesSubject: PublishSubject())
+        self.output = viewModel.transform(input: self.input)
         super.init(nibName: nil,bundle: nil)
     }
     
@@ -35,14 +39,9 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     override func viewDidLoad() {
-        funcToDispose()
         setupUI()
         setupSubscriptions()
-        viewModel.loadFavoritesSubject.onNext(true)
-    }
-    
-    func funcToDispose(){
-        viewModel.loadFavorites(subject: viewModel.loadFavoritesSubject).disposed(by: disposeBag) 
+        viewModel.input?.loadFavoritesSubject.onNext(true)
     }
     
     func setupUI(){
@@ -73,12 +72,12 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return viewModel.news.count
+        return (viewModel.output?.news.count)!
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let singleNews = viewModel.news[indexPath.row]
+        let singleNews = (viewModel.output?.news[indexPath.row])!
         guard let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as? NewsTableViewCell  else {
             fatalError("The dequeued cell is not an instance of NewsTableViewCell.")
         }
@@ -87,20 +86,24 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let newsToShow = viewModel.news[indexPath.row]
+        let newsToShow = (viewModel.output?.news[indexPath.row])!
         guard let delegate = favoritesDelegate else {return}
         detailsDelegate?.showDetailedNews(news: newsToShow, delegate: delegate)
     }
     
     func setupSubscriptions(){
-        viewModel.tableReloadSubject
+        for disposable in viewModel.disposables{
+            disposable.disposed(by: disposeBag)
+        }
+        
+        viewModel.output?.tableReloadSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
                 self.tableView.reloadData()
             }).disposed(by: disposeBag)
         
-        viewModel.tableViewSubject
+        viewModel.output?.tableViewSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (favoritesTableViewSubjectEnum) in
@@ -118,10 +121,10 @@ class FavoritesTableViewController: UIViewController, UITableViewDelegate, UITab
 
 extension FavoritesTableViewController: FavoriteClickDelegate{
     func favoriteClicked(newsTitle: String) {
-        if let indexOfMainNews = viewModel.news.enumerated().first(where: { (data) -> Bool in
+        if let indexOfMainNews = viewModel.output?.news.enumerated().first(where: { (data) -> Bool in
             data.element.title == newsTitle
         }){
-            self.favoritesDelegate?.editFavorites(news: viewModel.news[indexOfMainNews.offset])
+            self.favoritesDelegate?.editFavorites(news: (viewModel.output?.news[indexOfMainNews.offset])!)
         }
         
     }

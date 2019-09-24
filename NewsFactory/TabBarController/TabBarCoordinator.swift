@@ -53,7 +53,6 @@ class TabBarCoordinator: Coordinator{
         self.favoritesController = favoritesCoordinator.viewController
         guard let favoritesController = favoritesController else { return FavoritesCoordinator(presenter: presenter)}
         favoritesController.favoritesDelegate = self
-        favoritesController.viewModel.manageFavorites(subject: favoritesController.viewModel.manageFavoritesSubject).disposed(by: disposeBag)
         favoritesController.title = "Favorites"
         favoritesController.tabBarItem.image = UIImage(named: "star")
         return favoritesCoordinator
@@ -82,7 +81,7 @@ class TabBarCoordinator: Coordinator{
         guard let favoritesController = favoritesController else { return }
         
         newsFeedController.viewModel.input?.manageFavoritesSubject.onNext(news)
-        favoritesController.viewModel.manageFavoritesSubject.onNext(news)
+        favoritesController.viewModel.input?.manageFavoritesSubject.onNext(news)
     }
    
 }
