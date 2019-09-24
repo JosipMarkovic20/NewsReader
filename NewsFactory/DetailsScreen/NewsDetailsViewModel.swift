@@ -10,14 +10,34 @@ import Foundation
 import UIKit
 import RxSwift
 
-class NewsDetailsViewModel {
+class NewsDetailsViewModel: ViewModelType {
+
+    struct Input{
+        var news: News
+        var checkForFavoritesSubject: PublishSubject<Bool>
+    }
     
-    var news: News
-    var favoriteStatusSubject = PublishSubject<Bool>()
-    var checkForFavoritesSubject = PublishSubject<Bool>()
+    struct Output{
+        var favoriteStatusSubject: PublishSubject<Bool>
+    }
+    
+    public var input: Input?
+    public var output: Output?
+    var disposables: [Disposable] = []
+    
     
     init(news: News) {
-        self.news = news
+        self.input?.news = news
+    }
+    
+    func transform(input: NewsDetailsViewModel.Input) -> NewsDetailsViewModel.Output {
+        disposables.append(checkForFavorites(subject: input.checkForFavoritesSubject))
+        
+        let output = Output(favoriteStatusSubject: PublishSubject())
+        self.input = input
+        self.output = output
+        
+        return output
     }
     
     func checkForFavorites(subject: PublishSubject<Bool>) -> Disposable{
@@ -25,7 +45,7 @@ class NewsDetailsViewModel {
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
-                self.favoriteStatusSubject.onNext(bool)
+                self.output?.favoriteStatusSubject.onNext(bool)
             })
         
     }

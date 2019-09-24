@@ -20,11 +20,10 @@ class NewsFeedTests: QuickSpec {
     override func spec(){
        
         describe("News feed data initialization"){
-            var viewModel: NewsFeedViewModelProtocol!
+            var viewModel: NewsFeedViewModel!
             let disposeBag = DisposeBag()
             let mockDataRepository = MockDataRepository()
             let mockDetailsDelegate = MockDetailsDelegate()
-            let mockFavoritesDelegate = MockFavoritesDelegate()
             let mockFavoriteClickDelegate = MockFavoriteClickDelegate()
             var testScheduler: TestScheduler!
             
@@ -55,25 +54,23 @@ class NewsFeedTests: QuickSpec {
                 
                 beforeEach {
                     testScheduler = TestScheduler(initialClock: 1)
-                    viewModel = NewsFeedViewModel(dataRepository: mockDataRepository, subscribeScheduler: testScheduler)
-                    viewModel.collectAndPrepareData(for: viewModel.getNewsDataSubject).disposed(by: disposeBag)
+                    viewModel = NewsFeedViewModel(dependencies: NewsFeedViewModel.Dependencies(standardUserDefaults: UserDefaults.standard, database: RealmManager(), dataRepository: mockDataRepository), subscribeScheduler: testScheduler)
+                    _ = viewModel.transform(input: NewsFeedViewModel.Input(toggleExpandSubject: PublishSubject(), fetchNewsSubject: PublishSubject(), getNewsDataSubject: PublishSubject(), favoriteEdit: {news in}, favoriteClickSubject: PublishSubject(), detailsDelegateSubject: PublishSubject(), manageFavoritesSubject: PublishSubject()))
                     loaderObserver = testScheduler.createObserver(Bool.self)
-                    viewModel.refreshAndLoaderSubject.subscribe(loaderObserver).disposed(by: disposeBag)
-                    viewModel.openNewsDetails(subject: viewModel.detailsDelegateSubject, favoritesDelegate: mockFavoritesDelegate).disposed(by: disposeBag)
-                    viewModel.favoriteClicked(subject: viewModel.favoriteClickSubject).disposed(by: disposeBag)
+                    viewModel.output?.refreshAndLoaderSubject.subscribe(loaderObserver).disposed(by: disposeBag)
                 }
                 
                 it("Testing AllNews Array"){
                     testScheduler.start()
-                    viewModel.getNewsDataSubject.onNext(.getNews)
-                    expect(viewModel.allNews.count).toEventually(equal(2))
-                    expect(viewModel.allNews[0].news.isEmpty).to(beFalse())
-                    expect(viewModel.allNews[1].news.isEmpty).to(beFalse())
+                    viewModel.input!.getNewsDataSubject.onNext(.getNews)
+                    expect(viewModel.output!.allNews.count).toEventually(equal(2))
+                    expect(viewModel.output!.allNews[0].news.isEmpty).to(beFalse())
+                    expect(viewModel.output!.allNews[1].news.isEmpty).to(beFalse())
                 }
                 
                 it("Testing loader"){
                     testScheduler.start()
-                    viewModel.getNewsDataSubject.onNext(.getNews)
+                    viewModel.input!.getNewsDataSubject.onNext(.getNews)
                     expect(loaderObserver.events.count).toEventually(equal(2))
                     expect(loaderObserver.events[0].value.element).to(beTrue())
                     expect(loaderObserver.events[1].value.element).to(beFalse())
@@ -82,34 +79,26 @@ class NewsFeedTests: QuickSpec {
                 
                 it("Testing news content"){
                     testScheduler.start()
-                    viewModel.getNewsDataSubject.onNext(.getNews)
-                    for element in viewModel.allNews[0].news{
+                    viewModel.input!.getNewsDataSubject.onNext(.getNews)
+                    for element in viewModel.output!.allNews[0].news{
                         expect(element.title).toNot(beNil())
                         expect(element.description).toNot(beNil())
                         expect(element.urlToImage).toNot(beNil())
                         expect(element.isFavorite).toNot(beNil())
                     }
-                    for element in viewModel.allNews[1].news{
+                    for element in viewModel.output!.allNews[1].news{
                         expect(element.title).toNot(beNil())
                         expect(element.description).toNot(beNil())
                         expect(element.urlToImage).toNot(beNil())
                         expect(element.isFavorite).toNot(beNil())
                     }
-                }
-                
-                it("Testing details delegate"){
-                    testScheduler.start()
-                    viewModel.getNewsDataSubject.onNext(.getNews)
-                    viewModel.detailsDelegate = mockDetailsDelegate
-                    viewModel.detailsDelegateSubject.onNext(IndexPath(row: 0, section: 0))
-                    verify(mockDetailsDelegate).showDetailedNews(news: any(), delegate: any())
                 }
                 
                 it("Testing favorites delegate"){
                     testScheduler.start()
-                    viewModel.getNewsDataSubject.onNext(.getNews)
+                    viewModel.input!.getNewsDataSubject.onNext(.getNews)
                     viewModel.favoriteClickDelegate = mockFavoriteClickDelegate
-                    viewModel.favoriteClickSubject.onNext("string")
+                    viewModel.input!.favoriteClickSubject.onNext("string")
                     verify(mockFavoriteClickDelegate).favoriteClicked(newsTitle: any())
                 }
             }

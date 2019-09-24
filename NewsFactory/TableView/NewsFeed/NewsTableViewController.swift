@@ -147,7 +147,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         
         viewModel.output?.refreshAndLoaderSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: {[unowned self] (bool) in
                 if bool{
                     self.loader = self.showLoader()
@@ -159,7 +159,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         
         viewModel.output?.sectionExpandSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: {[unowned self] (enumCase) in
                 switch enumCase{
                 case .sectionExpand(let indexPath):
@@ -171,14 +171,14 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         
         viewModel.input?.toggleExpandSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: {[unowned self] (button) in
                 self.viewModel.toggleExpand(button: button)
             }).disposed(by: disposeBag)
         
         viewModel.output?.tableViewControlSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: { (enumCase) in
                 switch enumCase{
                 case .reloadRows(let indexPath):
@@ -190,14 +190,14 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         
         viewModel.output?.toastSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: {[unowned self] (string) in
                 self.showToast(controller: self, message: string, seconds: 1)
             }).disposed(by: disposeBag)
         
         viewModel.input?.fetchNewsSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: { (enumCase) in
                 switch enumCase{
                 case .getNews:
@@ -210,7 +210,7 @@ class NewsTableViewController: UIViewController, UITableViewDelegate, UITableVie
         
         viewModel.output?.alertPopUpSubject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
+            .subscribeOn(viewModel.subscribeScheduler)
             .subscribe(onNext: { (enumCase) in
                 self.showAlert(alertEnumCase: enumCase)
             }).disposed(by: disposeBag)

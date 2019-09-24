@@ -1,4 +1,4 @@
-// MARK: - Mocks generated from file: NewsFactory/Delegates/DetailsDelegate.swift at 2019-09-23 06:34:38 +0000
+// MARK: - Mocks generated from file: NewsFactory/Delegates/DetailsDelegate.swift at 2019-09-24 07:00:54 +0000
 
 //
 //  DetailsDelegate.swift
@@ -103,7 +103,7 @@ import Foundation
 }
 
 
-// MARK: - Mocks generated from file: NewsFactory/Delegates/FavoritesDelegate.swift at 2019-09-23 06:34:38 +0000
+// MARK: - Mocks generated from file: NewsFactory/Delegates/FavoritesDelegate.swift at 2019-09-24 07:00:54 +0000
 
 //
 //  FavoritesDelegate.swift
@@ -299,7 +299,7 @@ import Foundation
 }
 
 
-// MARK: - Mocks generated from file: NewsFactory/Networking/DataRepository.swift at 2019-09-23 06:34:38 +0000
+// MARK: - Mocks generated from file: NewsFactory/Networking/DataRepository.swift at 2019-09-24 07:00:54 +0000
 
 //
 //  DataRepository.swift

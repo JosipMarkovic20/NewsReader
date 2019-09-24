@@ -39,7 +39,6 @@ class NewsFeedViewModel: ViewModelType{
         let standardUserDefaults: UserDefaults
         let database: RealmManager
         let dataRepository: DataRepositoryProtocol
-        let subscribeScheduler: SchedulerType
     }
     
     var bbcSelected: Bool = true
@@ -50,10 +49,12 @@ class NewsFeedViewModel: ViewModelType{
     public var output: Output?
     var favoritesDelegate: FavoritesDelegate?
     var disposables: [Disposable] = []
+    var subscribeScheduler: SchedulerType
     
 
-    init (dependencies: Dependencies){
+    init (dependencies: Dependencies, subscribeScheduler: SchedulerType = ConcurrentDispatchQueueScheduler(qos: .background)){
         self.dependencies = dependencies
+        self.subscribeScheduler = subscribeScheduler
         favoriteClickDelegate = self
     }
     
@@ -116,7 +117,7 @@ class NewsFeedViewModel: ViewModelType{
             return observable
         })
             .observeOn(MainScheduler.instance)
-            .subscribeOn(dependencies.subscribeScheduler)
+            .subscribeOn(subscribeScheduler)
             .map({[unowned self] (bbcNews, ignNews, realmNews) -> (ExpandableNews,ExpandableNews) in
                 self.output?.allNews.removeAll()
                 let bbcNewsFeedArray = self.createScreenData(news: bbcNews, realmNews: realmNews, title: "BBC News")
@@ -172,7 +173,7 @@ class NewsFeedViewModel: ViewModelType{
             }
         })
             .observeOn(MainScheduler.instance)
-            .subscribeOn(dependencies.subscribeScheduler)
+            .subscribeOn(subscribeScheduler)
             .subscribe(onNext: {[unowned self] (string) in
                 self.output?.toastSubject.onNext(string)
                 print(string)
@@ -195,7 +196,7 @@ class NewsFeedViewModel: ViewModelType{
             return newsToShow!
         })
             .observeOn(MainScheduler.instance)
-            .subscribeOn(dependencies.subscribeScheduler)
+            .subscribeOn(subscribeScheduler)
             .subscribe(onNext: {[unowned self] (news) in
                 guard let delegate = self.favoritesDelegate else { return }
                 guard let delegateDetails = self.detailsDelegate else { return }
@@ -206,7 +207,7 @@ class NewsFeedViewModel: ViewModelType{
     func favoriteClicked(subject: PublishSubject<String>) -> Disposable{
         return subject
             .observeOn(MainScheduler.instance)
-            .subscribeOn(dependencies.subscribeScheduler).subscribe(onNext: {[unowned self] (newsTitle) in
+            .subscribeOn(subscribeScheduler).subscribe(onNext: {[unowned self] (newsTitle) in
             self.favoriteClickDelegate?.favoriteClicked(newsTitle: newsTitle)
         })
     }

@@ -42,10 +42,13 @@ class NewsDetailsViewController: UIViewController {
     let viewModel: NewsDetailsViewModel
     let disposeBag = DisposeBag()
     weak var detailsCoordinatorDelegate: CoordinatorDelegate?
+    let output: NewsDetailsViewModel.Output
     
     init(news: News, delegate: FavoritesDelegate){
         viewModel = NewsDetailsViewModel(news: news)
         self.delegate = delegate
+        let input = NewsDetailsViewModel.Input(news: news, checkForFavoritesSubject: PublishSubject())
+        self.output = viewModel.transform(input: input)
         super.init(nibName: nil, bundle: nil)
         setDataToViews(news: news)
     }
@@ -62,7 +65,7 @@ class NewsDetailsViewController: UIViewController {
         super.viewDidLoad()
         setupSubscriptions()
         setupUI()
-        viewModel.checkForFavoritesSubject.onNext(true)
+        viewModel.input?.checkForFavoritesSubject.onNext(true)
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -89,7 +92,6 @@ class NewsDetailsViewController: UIViewController {
         view.addSubview(newsDescription)
         setupConstraints()
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "star"), style: .plain, target: self, action: #selector(editFavorites))
-        viewModel.checkForFavorites(subject: viewModel.checkForFavoritesSubject).disposed(by: disposeBag)
     }
     
     func setupConstraints(){
@@ -108,16 +110,16 @@ class NewsDetailsViewController: UIViewController {
     }
     
     @objc func editFavorites(){
-        delegate.editFavorites(news: viewModel.news)
-        viewModel.checkForFavoritesSubject.onNext(true)
+        delegate.editFavorites(news: viewModel.input!.news)
+        viewModel.input?.checkForFavoritesSubject.onNext(true)
     }
     
     func setupSubscriptions(){
-        viewModel.checkForFavoritesSubject
+        viewModel.input?.checkForFavoritesSubject
             .observeOn(MainScheduler.instance)
             .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
             .subscribe(onNext: {[unowned self] (bool) in
-                if self.viewModel.news.isFavorite{
+                if self.viewModel.input?.news.isFavorite ?? false{
                     self.navigationItem.rightBarButtonItem?.tintColor = UIColor(red: 1, green: 0.87, blue: 0, alpha: 1)
                 }else{
                     self.navigationItem.rightBarButtonItem?.tintColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)

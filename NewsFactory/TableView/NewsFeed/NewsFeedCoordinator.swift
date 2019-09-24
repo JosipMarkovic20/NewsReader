@@ -19,7 +19,7 @@ class NewsFeedCoordinator : Coordinator {
     
     init(presenter :UINavigationController) {
         self.presenter = presenter
-        viewModel = NewsFeedViewModel(dependencies: NewsFeedViewModel.Dependencies(standardUserDefaults: UserDefaults.standard, database: RealmManager(), dataRepository: DataRepository(), subscribeScheduler: ConcurrentDispatchQueueScheduler(qos: .background)))
+        viewModel = NewsFeedViewModel(dependencies: NewsFeedViewModel.Dependencies(standardUserDefaults: UserDefaults.standard, database: RealmManager(), dataRepository: DataRepository()))
         viewController = NewsTableViewController(viewModel: viewModel)
         viewModel.detailsDelegate = self
     }
